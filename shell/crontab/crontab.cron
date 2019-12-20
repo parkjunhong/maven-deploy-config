@@ -1,0 +1,41 @@
+# HowTo use Crontab (Basic commands)
+# Posted by Nikesh Jauhari
+# open the crontab editor:
+# # crontab -e
+# 
+# minute   hour   day   month   dayofweek   command
+# 
+# minute — any integer from 0 to 59
+# hour — any integer from 0 to 23
+# day — any integer from 1 to 31 (must be a valid day if a month is specified)
+# month — any integer from 1 to 12 (or the short name of the month such as jan or feb)
+# dayofweek — any integer from 0 to 7, where 0 or 7 represents Sunday (or the short name of the week such as sun or mon)
+# command — the command to execute (the command can either be a command such as ls /proc >> /tmp/proc or the command to execute a custom script)
+# 
+# you can use this variables:
+# 
+# 1 = Minute after the hour
+# 2 = the hour you want it done
+# 3 = Day of the Month
+# 4 = Month of the Yearn
+# 5 = Day of the week
+# 6 = 'command you want to execute'
+# * = ALL
+# 
+# Example:
+# 30 0 * * * /usr/local/aplication
+# It will run the application every day at 12:30 AM.
+# * * * - means all day of the month, all month of the year, all day of the week
+# 
+# Other crontab commands:
+# crontab -e opens the editor
+# crontab -l lists the contents of the crontab
+# crontab -r removes the crontab
+# 
+# 
+# Read more: http://linuxpoison.blogspot.kr/2008/02/howto-use-crontab-basic-commands.html#ixzz3iOiHkA4T
+
+## 
+# DELETE '${service.title}' log files.
+0 0 * * * find ${log.dir}/ -mtime +2 -exec rm -f {} ';'
+
