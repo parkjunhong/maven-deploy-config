@@ -230,7 +230,7 @@ prop(){
 # @param $1 {string} property name
 check_sys_prop(){
 	case "$1" in 
-	 	"sys:user.dir")
+	 	"sys:user.home")
 	 		echo ${HOME}
 	 		;;
 	 	*)
