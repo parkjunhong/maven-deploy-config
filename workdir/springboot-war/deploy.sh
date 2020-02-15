@@ -233,6 +233,9 @@ check_sys_prop(){
 	 	"sys:user.home")
 	 		echo ${HOME}
 	 		;;
+	 	"sys:username")
+	 		echo ${USER}
+	 		;;
 	 	*)
 	 		;;
 	 esac
