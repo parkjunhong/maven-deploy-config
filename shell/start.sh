@@ -99,6 +99,22 @@ prop(){
 	fi
 }
 
+#
+# @param $1 {string} property name
+check_sys_prop(){
+	 case "$1" in 
+	 	"sys:user.home")
+	 		echo ${HOME}
+	 		;;
+	 	"sys:username")
+	 		echo ${USER}
+	 		;;
+	 	*)
+	 		;;
+	 esac
+}
+
+REGEX_PROP_REF="\\\$\{([^\}]+)\}"
 # $1 {string} absolute file path.
 # $2 {string} prop_name
 # $3 {any} default_value
@@ -109,14 +125,21 @@ read_prop(){
 	if [ -z "$GLOBAL_REMATCH" ];
 	then
 		echo $property
-	else
+	else	
 		local references=($(echo $GLOBAL_REMATCH))
 		for ref in "${references[@]}";
 		do
-			local ref_value=$(read_prop "$1" "$ref")
-			if [ ! -z "$ref_value" ];
+			# check system property
+			local ref_value=$(checK_sys_prop ${ref})
+			if [ ! -z "${ref_value}" ] ;
 			then
-				local property=${property//\$\{$ref\}/$ref_value}
+				property=${property//\$\{$ref\}/$ref_value}
+			else
+				local ref_value=$(read_prop "$1" "$ref")
+				if [ ! -z "$ref_value" ];
+				then
+					property=${property//\$\{$ref\}/$ref_value}
+				fi
 			fi
 		done
 		echo $property
