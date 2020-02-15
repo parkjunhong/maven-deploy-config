@@ -229,9 +229,12 @@ prop(){
 #
 # @param $1 {string} property name
 check_sys_prop(){
-	case "$1" in 
+	 case "$1" in 
 	 	"sys:user.home")
 	 		echo ${HOME}
+	 		;;
+	 	"sys:username")
+	 		echo ${USER}
 	 		;;
 	 	*)
 	 		;;
