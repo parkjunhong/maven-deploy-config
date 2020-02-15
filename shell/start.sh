@@ -130,7 +130,7 @@ read_prop(){
 		for ref in "${references[@]}";
 		do
 			# check system property
-			local ref_value=$(checK_sys_prop ${ref})
+			local ref_value=$(check_sys_prop ${ref})
 			if [ ! -z "${ref_value}" ] ;
 			then
 				property=${property//\$\{$ref\}/$ref_value}
