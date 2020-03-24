@@ -26,13 +26,6 @@
 	<!-- begin: common configurations -->
 	<fileSets>
 		<fileSet>
-			<directory>${project.basedir}/shell/crontab</directory>
-			<outputDirectory>/crontab</outputDirectory>
-			<includes>
-				<include>**</include>
-			</includes>
-		</fileSet>		
-		<fileSet>
 			<directory>${project.basedir}/shell</directory>
 			<outputDirectory>/</outputDirectory>
 			<includes>
@@ -40,8 +33,13 @@
 			</includes>
 			<fileMode>0755</fileMode>
 		</fileSet>
-		<!-- begin - !!! 프로젝트에 맞춰 추가작성할 것 !!! -->
-		<!-- end - !!! 프로젝트에 맞춰 추가작성할 것 !!! -->
+		<fileSet>
+			<directory>${project.basedir}/shell/crontab</directory>
+			<outputDirectory>/crontab</outputDirectory>
+			<includes>
+				<include>**</include>
+			</includes>
+		</fileSet>
 		<fileSet>
 			<directory>${project.build.directory}/${build.finalName}</directory>
 			<outputDirectory>/</outputDirectory>
@@ -52,7 +50,7 @@
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!-- begin: COPY INSTALL SHELL FILES -->
 		<fileSet>
-			<directory>${project.basedir}/shell/install/</directory>
+			<directory>${project.basedir}/workdir/install/</directory>
 			<outputDirectory>/install</outputDirectory>
 			<includes>
 				<include>**</include>
@@ -62,7 +60,7 @@
 			</excludes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.basedir}/shell/install/</directory>
+			<directory>${project.basedir}/workdir/install/</directory>
 			<outputDirectory>/install</outputDirectory>
 			<includes>
 				<include>**/*.sh</include>
@@ -70,7 +68,7 @@
 			<fileMode>755</fileMode>
 		</fileSet>
 		<!-- end: COPY INSTALL SHELL FILES -->
-		<!-- +++++++++++++++++++++++++++++ -->		
+		<!-- +++++++++++++++++++++++++++++ -->
 	</fileSets>
 	<!-- ======================================== -->
 </assembly>

@@ -17,9 +17,6 @@
 # Description: Start up the '${service.title} Service'
 ### END INIT INFO
 
-INST_DIR="${install.dir}"
-CONF_FILE="${install.dir}/service.properties"
-
 RETVAL=0
 case $1 in
 	start)
