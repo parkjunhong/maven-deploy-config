@@ -54,19 +54,20 @@ then
 	exit 1
 fi
 
-APP_NAME="${application.name}"
+JAVA_OPTS="${java.parameters}"
 EXEC_FILE="${execution.filename}"
+APP_NAME="${application.name}"
+APP_OPTS="${application.parameters}"
 
 echo
 echo "=============================================================================================="
-echo "APP_NAME     : ${APP_NAME}"
-echo "DIRECTORY    : ${INSALL_DIR}"
-echo "EXEC_FILE    : ${EXEC_FILE}"
-echo "JAVA_PATH    : ${JAVA_PATH}"
+echo "DIRECTORY: ${INSALL_DIR}"
+echo "EXEC_FILE: ${EXEC_FILE}"
+echo "APP_NAME : ${APP_NAME}"
+echo "APP_PATH : ${APP_OPTS}"
+echo "JAVA_PATH: ${JAVA_PATH}"
+echo "JAVA_OPTS: ${JAVA_OPTS}"
 
-#
-# Log4j-2.x Making All Loggers Asynchronous
-JAVA_OPTS="-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector -DAsyncLogger.ThreadNameStrategy=UNCACHED"
 
 # 실행 명령어
 EXEC_CMD="nohup ${JAVA_PATH}"
@@ -83,7 +84,7 @@ fi
 # end: 커스터마이징 !!!
 
 # 프로그램 설정정보
-EXEC_CMD=${EXEC_CMD}" -jar -Dname=${APP_NAME} ${JAVA_OPTS} ${EXEC_FILE} > /dev/null 2>&1 &"
+EXEC_CMD=${EXEC_CMD}" -jar -Dname=${APP_NAME} ${JAVA_OPTS} ${EXEC_FILE} ${APP_OPTS} > /dev/null 2>&1 &"
 
 
 {
