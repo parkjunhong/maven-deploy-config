@@ -972,18 +972,18 @@ echo ">>> ### copy resoureces files ###"
 copy_files ${BUILD_NAME} ${INST_DIR} "files"
 echo "<<<"
 
-echo
-echo "###########################################################################################"
-echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
-echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
-echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
-echo "###########################################################################################"
-
-INST_MOD_DIR=$(read_prop "${CONFIG_FILE}" "install.module.directory")
-SVC_TEMPLATE_FILE="${BUILD_NAME}/${INST_MOD_DIR}/${OS_NAME}/${OS_VERSION}/service.template"
 # 서비스로 등록하는 경우
 if [ "$AS_A_SERVICE" = "Y" ];
 then
+	echo
+	echo "###########################################################################################"
+	echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
+	echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
+	echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
+	echo "###########################################################################################"
+
+	INST_MOD_DIR=$(read_prop "${CONFIG_FILE}" "install.module.directory")
+	SVC_TEMPLATE_FILE="${BUILD_NAME}/${INST_MOD_DIR}/${OS_NAME}/${OS_VERSION}/service.template"
 	echo
 	echo "### "$(read_prop "${CONFIG_FILE}" "service.file.description")
 	
