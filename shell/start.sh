@@ -64,7 +64,7 @@ echo "==========================================================================
 echo "DIRECTORY: ${INSALL_DIR}"
 echo "EXEC_FILE: ${EXEC_FILE}"
 echo "APP_NAME : ${APP_NAME}"
-echo "APP_PATH : ${APP_OPTS}"
+echo "APP_OPTS : ${APP_OPTS}"
 echo "JAVA_PATH: ${JAVA_PATH}"
 echo "JAVA_OPTS: ${JAVA_OPTS}"
 
