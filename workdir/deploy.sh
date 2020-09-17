@@ -198,12 +198,38 @@ global_rematch() {
 	done
 }
 
+
+# 프로퍼티 발견 여부
+RTV_PROP_CNT=0
+# 프로퍼티 값
+RTV_PROP_VAL=""
 ## 설정파일 읽기
 # $1 {string} file
 # $2 {string} prop_name
 # $3 {any} default_value
 prop(){
 	local property=""
+	
+	# 프로퍼티 존재 여부 확인	
+    local cnt=$(grep -v -e "^#" ${1} | grep -e "^${2}=" | wc -l)
+    if [ $cnt -lt 1 ];
+    then
+    	# 기본값을 전달받은 경우
+        if [ ! -z "$3" ];
+        then
+            RTV_PROP_CNT=1
+            RTV_PROP_VAL="$3"
+        else
+            RTV_PROP_CNT=0
+            RTV_PROP_VAL="$property"
+        fi
+        return
+    fi  
+    
+
+	# 프로퍼티 존재 설정
+    RTV_PROP_CNT=1	
+	
 	# 1. profile 에 기반한 설정부터 조회 
 	if [ ! -z "${1}" ];
 	then
@@ -218,12 +244,15 @@ prop(){
 		# 3. 기본설정이 없고 함수 호출시 기본값이 있는 경우
 		if [ -z "${property}" ] && [ ! -z "$3" ];
 		then
-			echo $3
+			#echo $3
+			RTV_PROP_VAL="$3"
 		else
-			echo ${property}
+			#echo ${property}
+			RTV_PROP_VAL="${property}"
 		fi
 	else
-		echo ${property}
+		#echo ${property}
+		RTV_PROP_VAL="${property}"
 	fi
 }
 
@@ -247,32 +276,43 @@ REGEX_PROP_REF="\\\$\{([^\}]+)\}"
 # $2 {string} prop_name
 # $3 {any} default_value
 read_prop(){
-	local property=$(prop "$1" "$2" "$3")
-	global_rematch "${property}" "$REGEX_PROP_REF"
-	
-	if [ -z "$GLOBAL_REMATCH" ];
-	then
-		echo ${property}
-	else	
-		local references=($(echo $GLOBAL_REMATCH))
-		for ref in "${references[@]}";
-		do
-			# check system property
-			local ref_value=$(check_sys_prop ${ref})
-			if [ ! -z "${ref_value}" ] ;
-			then
-				property=${property//\$\{$ref\}/$ref_value}
-			else
-				local ref_value=$(read_prop "$1" "$ref")
-				if [ ! -z "$ref_value" ];
-				then
-					property=${property//\$\{$ref\}/$ref_value}
-				fi
-			fi
-		done
-		echo ${property}
-	fi
+#   local property=$(prop "$1" "$2" "$3")
+    prop "$1" "$2" "$3"
+    local property="$RTV_PROP_VAL"
+    global_rematch "${property}" "$REGEX_PROP_REF"
+
+    if [ -z "$GLOBAL_REMATCH" ];
+    then
+        if [ $RTV_PROP_CNT -eq 1 ];
+        then
+            echo ${property}
+        else
+            echo "\${$2}"
+        fi
+    else
+        local references=($(echo $GLOBAL_REMATCH))
+        for ref in "${references[@]}";
+        do
+            # check system property
+            local ref_value=$(check_sys_prop ${ref})
+            if [ ! -z "${ref_value}" ] ;
+            then
+                property=${property//\$\{$ref\}/$ref_value}
+            else
+                local ref_value=$(read_prop "$1" "$ref")
+                if [ ! -z "$ref_value" ];
+                then
+                    property=${property//\$\{$ref\}/$ref_value}
+                elif [ $RTV_PROP_CNT -eq 1 ]
+                then
+                    property=${property//\$\{$ref\}/$ref_value}
+                fi
+            fi
+        done
+        echo ${property}
+    fi
 }
+
 
 
 # Replace a old string to a new string.
@@ -317,6 +357,7 @@ update_properties(){
 	local prop_value=""
 	
 	printf "	%-30s = %s\n" "filename" "${targetfile}"
+	printf "	%-30s\n" "------------------------------"
 	
 	for prop in "${arguments[@]:1}";
 	do
@@ -324,14 +365,16 @@ update_properties(){
 		unwrap_quote "$prop" "prop"
 		
 		local prop_value=$(read_prop "${CONFIG_FILE}" "$prop")
-		if [ ! -z "$prop_value" ];
-		then
+		
+		# 설정값이 빈문자열인 경우 허용 적용
+#		if [ ! -z "$prop_value" ];
+#		then
 			printf "	%-30s = %s\n" "$prop" "$prop_value"
 			update_property "${targetfile}" "$prop" "$prop_value"	
-		fi
+#		fi
 	done
 	
-	echo "--------------------------------"
+	echo "--------------------------------------"
 }
 
 # check a file exists.
@@ -449,8 +492,6 @@ copy_files(){
 	
 	## 'contains' 함수에서 사용하기 위해서 global 변수로 설정
 	filesconfig=($(read_prop "${CONFIG_FILE}" "${filecontainer}.configuration.filenames"))
-	echo " ... args=$@"	
-	echo " ... filesconfig=${filesconfig}"
 	for file in ${files};
 	do
 	{
@@ -972,18 +1013,65 @@ echo ">>> ### copy resoureces files ###"
 copy_files ${BUILD_NAME} ${INST_DIR} "files"
 echo "<<<"
 
+echo
+echo "###########################################################################################"
+echo "### -------------------- Copy files & directories to specified locations. ------------- ###"
+echo "### -------------------- Copy files & directories to specified locations. ------------- ###"
+echo "### -------------------- Copy files & directories to specified locations. ------------- ###"
+echo "###########################################################################################"
+
+PROP_COPY="additional.action.copy"
+for action in $(read_prop "${CONFIG_FILE}" $PROP_COPY)
+do
+	_cp_conf_=$(read_prop "${CONFIG_FILE}" $PROP_COPY"."$action)
+	if [ -z "$_cp_conf_" ];
+	then
+		continue
+	fi
+	
+	# 콤마(,)로 복사 설정목록 분리
+	IFS="," read -a _cp_cfgs_ <<< "${_cp_conf_}"
+	for _cp_cfg_ in ${_cp_cfgs_[@]}
+	do	
+		# src|dst 분리
+	    IFS="|" read -a _cp_info_ <<< "${_cp_cfg_}" 
+	    if [ ${#_cp_info_[@]} -ne 2 ];
+	    then
+	    	echo
+	        echo "[Invalid] step: 'copy addtional resources', resource='$PROP_COPY.$action=${_cp_info_[@]}'"
+	        continue
+	    fi
+	
+		if [ -f "${_cp_info_[1]}" ];
+		then
+			echo
+			echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_cp_info[1]}"
+			continue
+		fi 
+	
+		[ ! -d "${_cp_info_[1]}" ] && mkdir -p "${_cp_info_[1]}"
+	      
+	    echo
+	    eval cp -v "${_cp_info_[0]}" "${_cp_info_[1]}/"
+	    echo "[SUCCESS] cp" "${_cp_info_[0]}" "${_cp_info_[1]}"
+    done
+done
+
+
+AUTOSTART=$(read_prop "${CONFIG_FILE}" "service.autostart")
 # 서비스로 등록하는 경우
 if [ "$AS_A_SERVICE" = "Y" ];
-then
+then	
 	echo
 	echo "###########################################################################################"
 	echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
 	echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
 	echo "### -------------------- Install '${BUILD_NAME}' as a Service  ------------------------ ###"
 	echo "###########################################################################################"
-
+	
 	INST_MOD_DIR=$(read_prop "${CONFIG_FILE}" "install.module.directory")
-	SVC_TEMPLATE_FILE="${BUILD_NAME}/${INST_MOD_DIR}/${OS_NAME}/${OS_VERSION}/service.template"
+	SVC_TEMPLATE_FILE="${BUILD_NAME}/${INST_MOD_DIR}/${OS_NAME}/${OS_VERSION}/service.template"	
+
 	echo
 	echo "### "$(read_prop "${CONFIG_FILE}" "service.file.description")
 	
@@ -1012,8 +1100,7 @@ then
 	
 	sleep 1
 	
-	AUTOSTART=$(read_prop "${CONFIG_FILE}" "service.autostart")
-	if [ "$AUTOSTART" = "Y" ];
+	if [ "${AUTOSTART}" = "Y" ];
 	then
 		# 서비스 시작
 		handle_service ${OS_NAME} ${OS_VERSION} "start" ${SVC_NAME}
@@ -1021,7 +1108,21 @@ then
 		# 서비스 상태 조회
 		#handle_service ${OS_NAME} ${OS_VERSION} "status" ${SVC_NAME}
 		_status_cmd_=$(read_prop "${CONFIG_FILE}" "service.file.exec_status")
+		echo "_status_cmd_=${_status_cmd_}"
 		eval ${_status_cmd_}
+	fi
+else
+	if [ "${AUTOSTART}" = "Y" ];
+	then
+		# 기존 실행 프로그램 종료
+		_stop_cmd_=$(read_prop "${CONFIG_FILE}" "service.file.exec_stop")
+		echo "_stop_cmd_=${_stop_cmd_}"
+		eval ${_stop_cmd_}
+		
+		# 프로그램 시작
+		_start_cmd_=$(read_prop "${CONFIG_FILE}" "service.file.exec_start")
+		echo "_start_cmd_=${_start_cmd_}"
+		eval ${_start_cmd_}
 	fi
 fi
 

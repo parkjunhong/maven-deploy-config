@@ -5,7 +5,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<!-- !!! 프로젝트에 맞춰 버전을 설정할 것 !!! -->
-		<version>2.1.8.RELEASE</version>
+		<version>2.2.4.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
@@ -35,9 +35,9 @@
 		<log4j.version>2.11.1</log4j.version>
 		<log4j-slf4j.version>2.11.1</log4j-slf4j.version>
 
-		<open-commons-core.version>1.6.15</open-commons-core.version>
-		<open-commons-spring-web.version>0.2.2-RELEASE</open-commons-spring-web.version>
-		<open-commons-spring-jdbc.version>0.0.5</open-commons-spring-jdbc.version>
+		<open-commons-core.version>1.7.0-SNAPSHOT</open-commons-core.version>
+		<open-commons-spring-web.version>0.3.0-SNAPSHOT</open-commons-spring-web.version>
+		<open-commons-spring-jdbc.version>0.2.0-SNAPSHOT</open-commons-spring-jdbc.version>
 
 		<oracje-jdbc.verson>12.2.0.1</oracje-jdbc.verson>
 		<!-- end - dependencies / !!! 프로젝트에 맞춰 변경할 것 !!! -->
@@ -78,6 +78,22 @@
 			<optional>true</optional>
 		</dependency>
 		<!-- end: spring boot -->
+		<!-- ************** -->
+		
+		<!-- ************** -->
+		<!-- JDBC -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+		</dependency>
+		<!-- begin: 사용하는 JDBC Connector 정보 -->
+		<!-- !!! 프로젝트에 맞춰 설정할 것 !!! -->
+		<!-- end: 사용하는 JDBC Connector 정보 -->
 		<!-- ************** -->
 
 		<!-- ************** -->
@@ -169,6 +185,12 @@
 			<version>0.9.11</version>
 		</dependency>
 		<!-- ************** -->
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
 
@@ -212,6 +234,7 @@
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 					<compilerArgs>
+						<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
 						<arg>-parameters</arg>
 					</compilerArgs>
 				</configuration>
@@ -321,11 +344,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptors>
-						<descriptor>assembly/assembly-copy-workdir.xml</descriptor>
-					</descriptors>
-				</configuration>
 				<executions>
 					<!-- begin: ${build.profile} -->
 					<execution>
@@ -371,6 +389,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
+					<goal>javadoc</goal>
 					<show>private</show>
 					<nohelp>true</nohelp>
 					<additionalOptions>
@@ -380,6 +399,14 @@
 					<docencoding>${encoding}</docencoding>
 					<encoding>${encoding}</encoding>
 				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>				
 			</plugin>
 			<!-- end: javadoc -->
 		</plugins>

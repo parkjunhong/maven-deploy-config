@@ -41,6 +41,29 @@
 			</includes>
 		</fileSet>
 		<fileSet>
+			<directory>${project.basedir}/shell/ctrl</directory>
+			<outputDirectory>/ctrl</outputDirectory>
+			<excludes>
+				<exclude>*.sh</exclude>
+			</excludes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/shell/ctrl</directory>
+			<outputDirectory>/ctrl</outputDirectory>
+			<includes>
+				<include>*.sh</include>
+			</includes>
+			<fileMode>0755</fileMode>
+		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/shell/monitor</directory>
+			<outputDirectory>/monitor</outputDirectory>
+			<includes>
+				<include>*.sh</include>
+			</includes>
+			<fileMode>0755</fileMode>
+		</fileSet>			
+		<fileSet>
 			<directory>${project.build.directory}/${build.finalName}</directory>
 			<outputDirectory>/</outputDirectory>
 			<includes>
