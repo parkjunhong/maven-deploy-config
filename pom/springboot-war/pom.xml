@@ -33,7 +33,7 @@
 
 		<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
 		<!-- begin - dependencies / !!! 프로젝트에 맞춰 변경할 것 !!! -->
-		<log4j.version>2.11.1</log4j.version>
+		<log4j.version>2.13.3</log4j.version>
 		<log4j-slf4j.version>2.11.1</log4j-slf4j.version>
 
 		<open-commons-core.version>1.6.15</open-commons-core.version>
