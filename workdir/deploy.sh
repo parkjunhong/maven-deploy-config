@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # $1 {string} variable name
 # $2 {any} value
@@ -1021,42 +1021,48 @@ echo "### -------------------- Copy files & directories to specified locations. 
 echo "###########################################################################################"
 
 PROP_COPY="additional.action.copy"
-for action in $(read_prop "${CONFIG_FILE}" $PROP_COPY)
-do
-	_cp_conf_=$(read_prop "${CONFIG_FILE}" $PROP_COPY"."$action)
-	if [ -z "$_cp_conf_" ];
-	then
-		continue
-	fi
-	
-	# 콤마(,)로 복사 설정목록 분리
-	IFS="," read -a _cp_cfgs_ <<< "${_cp_conf_}"
-	for _cp_cfg_ in ${_cp_cfgs_[@]}
-	do	
-		# src|dst 분리
-	    IFS="|" read -a _cp_info_ <<< "${_cp_cfg_}" 
-	    if [ ${#_cp_info_[@]} -ne 2 ];
-	    then
-	    	echo
-	        echo "[Invalid] step: 'copy addtional resources', resource='$PROP_COPY.$action=${_cp_info_[@]}'"
-	        continue
-	    fi
-	
-		if [ -f "${_cp_info_[1]}" ];
-		then
-			echo
-			echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_cp_info[1]}"
-			continue
-		fi 
-	
-		[ ! -d "${_cp_info_[1]}" ] && mkdir -p "${_cp_info_[1]}"
-	      
-	    echo
-	    eval cp -v "${_cp_info_[0]}" "${_cp_info_[1]}/"
-	    echo "[SUCCESS] cp" "${_cp_info_[0]}" "${_cp_info_[1]}"
-    done
-done
+ACTIONS=$(read_prop "${CONFIG_FILE}" $PROP_COPY)
 
+if [ "\${$PROP_COPY}" != ${ACTIONS} ];then
+	#for action in $(read_prop "${CONFIG_FILE}" $PROP_COPY)
+	for action in ${ACTIONS[@]}
+	do
+		_cp_conf_=$(read_prop "${CONFIG_FILE}" $PROP_COPY"."$action)
+		if [ -z "$_cp_conf_" ];
+		then
+			continue
+		fi
+		
+		# 콤마(,)로 복사 설정목록 분리
+		IFS="," read -a _cp_cfgs_ <<< "${_cp_conf_}"
+		for _cp_cfg_ in ${_cp_cfgs_[@]}
+		do	
+			# src|dst 분리
+		    IFS="|" read -a _cp_info_ <<< "${_cp_cfg_}" 
+		    if [ ${#_cp_info_[@]} -ne 2 ];
+		    then
+		    	echo
+		        echo "[Invalid] step: 'copy addtional resources', resource='$PROP_COPY.$action=${_cp_info_[@]}'"
+		        continue
+		    fi
+		
+			if [ -f "${_cp_info_[1]}" ];
+			then
+				echo
+				echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_cp_info[1]}"
+				continue
+			fi 
+		
+			[ ! -d "${_cp_info_[1]}" ] && mkdir -p "${_cp_info_[1]}"
+		      
+		    echo
+		    eval cp -v "${_cp_info_[0]}" "${_cp_info_[1]}/"
+		    echo "[SUCCESS] cp" "${_cp_info_[0]}" "${_cp_info_[1]}"
+	    done
+	done
+else
+	echo "[DETECTED] No files..."
+fi
 
 AUTOSTART=$(read_prop "${CONFIG_FILE}" "service.autostart")
 # 서비스로 등록하는 경우
