@@ -495,6 +495,7 @@ copy_files(){
 	for file in ${files};
 	do
 	{
+		echo " * * * file=$file, container=$filecontainer, filesconfig=$filesconfig"
 		local filesconfigprops=""
 		if [ -f "${source}/${file}" ];
 		then
@@ -528,7 +529,8 @@ copy_files(){
 				mkdir -p ${target}
 			fi
 			
-			cp ${source}/${file} ${target}/
+			printf "[COPYing] "
+			cp -v ${source}/${file} ${target}/
 			echo "[SUCCESS] cp ${source}/${file} ${target}/" 
 		else
 			echo "[FAIL] ${source}/${file} does NOT EXIST"
@@ -988,6 +990,7 @@ echo ">>> ### copy resource directories ###"
 ## begin: 디렉토리 복사
 ## 디렉토리를 복사하면서 특정 파일에 대한 별도 처리를 추가할 수 있다. 
 RES_DIRS=($(read_prop "${CONFIG_FILE}" "resources.directories"))
+echo "==========================================================="
 for dir_name in "${RES_DIRS[@]}";
 do
 {
@@ -997,6 +1000,7 @@ do
 	else
 		echo "[FAIL] ${res_dir} does NOT EXIST !!!"
 	fi
+	echo "==========================================================="
 }||{
 	echo
 	echo "[Errors] step: 'copy resource directories', directory: $res_dir"
