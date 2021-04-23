@@ -832,15 +832,6 @@ else
 fi
 
 
-## 서비스 등록 여부
-AS_A_SERVICE=$(read_prop "${CONFIG_FILE}"  "service.registration")
-# 서비스로 등록하는 경우
-if [ "$AS_A_SERVICE" == "Y" ];
-then
-	load_os_info
-fi
-
-
 ## sudo 필요 여부 확인
 SUDO=$(read_prop "${CONFIG_FILE}" "system.sudo")
 if [ "$SUDO" == "true" ];
@@ -942,6 +933,14 @@ then
 	
 	clean_temp_dir
 	exit 2
+fi
+
+## 서비스 등록 여부
+AS_A_SERVICE=$(read_prop "${CONFIG_FILE}"  "service.registration")
+# 서비스로 등록하는 경우
+if [ "$AS_A_SERVICE" == "Y" ];
+then
+	load_os_info
 fi
 
 # 서비스 명
