@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # $1 {string} variable name
 # $2 {any} value
@@ -495,6 +495,7 @@ copy_files(){
 	for file in ${files};
 	do
 	{
+		echo " * * * file=$file, container=$filecontainer, filesconfig=$filesconfig"
 		local filesconfigprops=""
 		if [ -f "${source}/${file}" ];
 		then
@@ -528,7 +529,8 @@ copy_files(){
 				mkdir -p ${target}
 			fi
 			
-			cp ${source}/${file} ${target}/
+			printf "[COPYing] "
+			cp -v ${source}/${file} ${target}/
 			echo "[SUCCESS] cp ${source}/${file} ${target}/" 
 		else
 			echo "[FAIL] ${source}/${file} does NOT EXIST"
@@ -830,15 +832,6 @@ else
 fi
 
 
-## 서비스 등록 여부
-AS_A_SERVICE=$(read_prop "${CONFIG_FILE}"  "service.registration")
-# 서비스로 등록하는 경우
-if [ "$AS_A_SERVICE" == "Y" ];
-then
-	load_os_info
-fi
-
-
 ## sudo 필요 여부 확인
 SUDO=$(read_prop "${CONFIG_FILE}" "system.sudo")
 if [ "$SUDO" == "true" ];
@@ -942,6 +935,14 @@ then
 	exit 2
 fi
 
+## 서비스 등록 여부
+AS_A_SERVICE=$(read_prop "${CONFIG_FILE}"  "service.registration")
+# 서비스로 등록하는 경우
+if [ "$AS_A_SERVICE" == "Y" ];
+then
+	load_os_info
+fi
+
 # 서비스 명
 SVC_NAME=$(read_prop "${CONFIG_FILE}" "service.name")
 # 서비스 설치 디렉토리
@@ -988,6 +989,7 @@ echo ">>> ### copy resource directories ###"
 ## begin: 디렉토리 복사
 ## 디렉토리를 복사하면서 특정 파일에 대한 별도 처리를 추가할 수 있다. 
 RES_DIRS=($(read_prop "${CONFIG_FILE}" "resources.directories"))
+echo "==========================================================="
 for dir_name in "${RES_DIRS[@]}";
 do
 {
@@ -997,6 +999,7 @@ do
 	else
 		echo "[FAIL] ${res_dir} does NOT EXIST !!!"
 	fi
+	echo "==========================================================="
 }||{
 	echo
 	echo "[Errors] step: 'copy resource directories', directory: $res_dir"
@@ -1021,42 +1024,48 @@ echo "### -------------------- Copy files & directories to specified locations. 
 echo "###########################################################################################"
 
 PROP_COPY="additional.action.copy"
-for action in $(read_prop "${CONFIG_FILE}" $PROP_COPY)
-do
-	_cp_conf_=$(read_prop "${CONFIG_FILE}" $PROP_COPY"."$action)
-	if [ -z "$_cp_conf_" ];
-	then
-		continue
-	fi
-	
-	# 콤마(,)로 복사 설정목록 분리
-	IFS="," read -a _cp_cfgs_ <<< "${_cp_conf_}"
-	for _cp_cfg_ in ${_cp_cfgs_[@]}
-	do	
-		# src|dst 분리
-	    IFS="|" read -a _cp_info_ <<< "${_cp_cfg_}" 
-	    if [ ${#_cp_info_[@]} -ne 2 ];
-	    then
-	    	echo
-	        echo "[Invalid] step: 'copy addtional resources', resource='$PROP_COPY.$action=${_cp_info_[@]}'"
-	        continue
-	    fi
-	
-		if [ -f "${_cp_info_[1]}" ];
-		then
-			echo
-			echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_cp_info[1]}"
-			continue
-		fi 
-	
-		[ ! -d "${_cp_info_[1]}" ] && mkdir -p "${_cp_info_[1]}"
-	      
-	    echo
-	    eval cp -v "${_cp_info_[0]}" "${_cp_info_[1]}/"
-	    echo "[SUCCESS] cp" "${_cp_info_[0]}" "${_cp_info_[1]}"
-    done
-done
+ACTIONS=$(read_prop "${CONFIG_FILE}" $PROP_COPY)
 
+if [ "\${$PROP_COPY}" != ${ACTIONS} ];then
+	#for action in $(read_prop "${CONFIG_FILE}" $PROP_COPY)
+	for action in ${ACTIONS[@]}
+	do
+		_cp_conf_=$(read_prop "${CONFIG_FILE}" $PROP_COPY"."$action)
+		if [ -z "$_cp_conf_" ];
+		then
+			continue
+		fi
+		
+		# 콤마(,)로 복사 설정목록 분리
+		IFS="," read -a _cp_cfgs_ <<< "${_cp_conf_}"
+		for _cp_cfg_ in ${_cp_cfgs_[@]}
+		do	
+			# src|dst 분리
+		    IFS="|" read -a _cp_info_ <<< "${_cp_cfg_}" 
+		    if [ ${#_cp_info_[@]} -ne 2 ];
+		    then
+		    	echo
+		        echo "[Invalid] step: 'copy addtional resources', resource='$PROP_COPY.$action=${_cp_info_[@]}'"
+		        continue
+		    fi
+		
+			if [ -f "${_cp_info_[1]}" ];
+			then
+				echo
+				echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_cp_info[1]}"
+				continue
+			fi 
+		
+			[ ! -d "${_cp_info_[1]}" ] && mkdir -p "${_cp_info_[1]}"
+		      
+		    echo
+		    eval cp -v "${_cp_info_[0]}" "${_cp_info_[1]}/"
+		    echo "[SUCCESS] cp" "${_cp_info_[0]}" "${_cp_info_[1]}"
+	    done
+	done
+else
+	echo "[DETECTED] No files..."
+fi
 
 AUTOSTART=$(read_prop "${CONFIG_FILE}" "service.autostart")
 # 서비스로 등록하는 경우
