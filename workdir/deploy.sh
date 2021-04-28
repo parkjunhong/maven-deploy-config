@@ -1026,7 +1026,7 @@ echo "##########################################################################
 PROP_COPY="additional.action.copy"
 ACTIONS=$(read_prop "${CONFIG_FILE}" $PROP_COPY)
 
-if [ "\${$PROP_COPY}" != ${ACTIONS} ];then
+if [ "\${$PROP_COPY}" != "${ACTIONS}" ];then
 	#for action in $(read_prop "${CONFIG_FILE}" $PROP_COPY)
 	for action in ${ACTIONS[@]}
 	do
