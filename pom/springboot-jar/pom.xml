@@ -32,7 +32,7 @@
 		<java.version>1.8</java.version>
 
 		<!-- begin - dependencies / !!! 프로젝트에 맞춰 변경할 것 !!! -->
-		<log4j.version>2.11.1</log4j.version>
+		<log4j.version>2.15.0</log4j.version>
 		<log4j-slf4j.version>2.11.1</log4j-slf4j.version>
 
 		<open-commons-core.version>1.7.0-SNAPSHOT</open-commons-core.version>
