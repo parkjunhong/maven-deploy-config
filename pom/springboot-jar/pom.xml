@@ -32,8 +32,8 @@
 		<java.version>1.8</java.version>
 
 		<!-- begin - dependencies / !!! 프로젝트에 맞춰 변경할 것 !!! -->
-		<log4j.version>2.11.1</log4j.version>
-		<log4j-slf4j.version>2.11.1</log4j-slf4j.version>
+		<log4j2.version>2.17.1</log4j2.version>
+		<log4j-slf4j.version>1.7.32</log4j-slf4j.version>
 
 		<open-commons-core.version>1.7.0-SNAPSHOT</open-commons-core.version>
 		<open-commons-spring-web.version>0.3.0-SNAPSHOT</open-commons-spring-web.version>
@@ -106,12 +106,12 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>${log4j.version}</version><!-- $NO-MVN-MAN-VER$ -->
+			<version>${log4j2.version}</version><!-- $NO-MVN-MAN-VER$ -->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>${log4j.version}</version><!-- $NO-MVN-MAN-VER$ -->
+			<version>${log4j2.version}</version><!-- $NO-MVN-MAN-VER$ -->
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
 		<dependency>
