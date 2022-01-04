@@ -40,7 +40,7 @@
 		<open-commons-spring-web.version>0.4.0-SNAPSHOT</open-commons-spring-web.version>
 		<open-commons-spring-jdbc.version>0.3.0-SNAPSHOT</open-commons-spring-jdbc.version>
 
-		<oracje-jdbc.verson>12.2.0.1</oracje-jdbc.verson>
+		<oracle-jdbc.version>12.2.0.1</oracle-jdbc.version>
 		<!-- end - dependencies / !!! 프로젝트에 맞춰 변경할 것 !!! -->
 	</properties>
 
@@ -107,10 +107,18 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
+<<<<<<< HEAD
+=======
+			<version>${log4j2.version}</version><!-- $NO-MVN-MAN-VER$ -->
+>>>>>>> branch 'master' of git@github.com:parkjunhong/maven-deploy-config.git
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
+<<<<<<< HEAD
+=======
+			<version>${log4j2.version}</version><!-- $NO-MVN-MAN-VER$ -->
+>>>>>>> branch 'master' of git@github.com:parkjunhong/maven-deploy-config.git
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
 		<dependency>
