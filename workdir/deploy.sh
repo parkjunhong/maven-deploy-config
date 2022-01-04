@@ -264,7 +264,7 @@ check_sys_prop(){
 	 		echo ${HOME}
 	 		;;
 	 	"sys:username")
-	 		echo ${USER}
+	 		echo $(id -u -n)
 	 		;;
 	 	*)
 	 		;;
