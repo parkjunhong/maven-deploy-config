@@ -802,6 +802,9 @@ handle_service(){
 				18)
 					handle_by_systemctl ${svc_cmd} ${svc_cmd_args}
 					;;
+				20)
+					handle_by_systemctl ${svc_cmd} ${svc_cmd_args}
+					;;
 				*)
 					echo
 					echo "Unsupported O.S version. os=${os_name}, version=${os_version}"
