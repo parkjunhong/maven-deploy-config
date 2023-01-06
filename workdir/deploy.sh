@@ -28,7 +28,7 @@ support_msg(){
 	echo 
 	echo " ================ OPERATING SYSTEM INFORMATION ================ "
 	echo
-	echo " Supporting System: CentOS 6, 7 / Ubuntu 16, 18"
+	echo " Supporting System: CentOS 6, 7 / Ubuntu 16, 18, 20"
 	echo
 	echo " -------------------------------------------------------------- "
 	cat /etc/*-release
