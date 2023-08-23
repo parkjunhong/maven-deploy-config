@@ -1055,7 +1055,7 @@ if [ "\${$PROP_COPY}" != "${ACTIONS}" ];then
 			if [ -f "${_cp_info_[1]}" ];
 			then
 				echo
-				echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_cp_info[1]}"
+				echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_cp_info_[1]}"
 				continue
 			fi 
 		
@@ -1064,6 +1064,57 @@ if [ "\${$PROP_COPY}" != "${ACTIONS}" ];then
 		    echo
 		    eval cp -v "${_cp_info_[0]}" "${_cp_info_[1]}/"
 		    echo "[SUCCESS] cp" "${_cp_info_[0]}" "${_cp_info_[1]}"
+	    done
+	done
+else
+	echo "[DETECTED] No files..."
+fi
+
+echo
+echo "###########################################################################################"
+echo "### -------------------- Move files & directories to specified locations. ------------- ###"
+echo "### -------------------- Move files & directories to specified locations. ------------- ###"
+echo "### -------------------- Move files & directories to specified locations. ------------- ###"
+echo "###########################################################################################"
+
+PROP_COPY="additional.action.move"
+ACTIONS=$(read_prop "${CONFIG_FILE}" $PROP_COPY)
+
+if [ "\${$PROP_COPY}" != "${ACTIONS}" ];then
+	#for action in $(read_prop "${CONFIG_FILE}" $PROP_COPY)
+	for action in ${ACTIONS[@]}
+	do
+		_mv_conf_=$(read_prop "${CONFIG_FILE}" $PROP_COPY"."$action)
+		if [ -z "$_mv_conf_" ];
+		then
+			continue
+		fi
+		
+		# 콤마(,)로 복사 설정목록 분리
+		IFS="," read -a _mv_cfgs_ <<< "${_mv_conf_}"
+		for _mv_cfg_ in ${_mv_cfgs_[@]}
+		do	
+			# src|dst 분리
+		    IFS="|" read -a _mv_info_ <<< "${_mv_cfg_}" 
+		    if [ ${#_mv_info_[@]} -ne 2 ];
+		    then
+		    	echo
+		        echo "[Invalid] step: 'copy addtional resources', resource='$PROP_COPY.$action=${_mv_info_[@]}'"
+		        continue
+		    fi
+		
+			if [ -f "${_mv_info_[1]}" ];
+			then
+				echo
+				echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_mv_info_[1]}"
+				continue
+			fi 
+		
+			[ ! -d "${_mv_info_[1]}" ] && mkdir -p "${_mv_info_[1]}"
+		      
+		    echo
+		    eval mv -v "${_mv_info_[0]}" "${_mv_info_[1]}/"
+		    echo "[SUCCESS] cp" "${_mv_info_[0]}" "${_mv_info_[1]}"
 	    done
 	done
 else
