@@ -12,11 +12,15 @@ usage(){
 	echo
 	echo "[Usage]"
 	echo
-	echo "./deploy.sh -c <configuration>"
+	echo "./deploy.sh -c <configuration> [--no-reg] [--no-start]"
 	echo
-	echo "[Option]"
-	echo " -c, --config     : (Optional) 설정파일 절대경로. 기본값: service.properties"
-	echo " -h, --help       : 도움말"
+	echo "[Parameters]"
+	echo " -c, --config   : (Optional) 설정파일 절대경로. 기본값: service.properties"
+	echo " -r, --reg-svc  : O.S 서비스 등록 여부. N: 등록안함, Y: 등록함"
+	echo " -s, --start-svc: 프로그램 자동 시작 여부. N: 자동시작안함, Y: 자동시작함"
+	echo ""
+	echo "[Options]"
+	echo " -h, --help     : 도움말"
 	echo
 	echo
 	echo " ================ OPERATING SYSTEM INFORMATION ================ "
@@ -28,7 +32,7 @@ support_msg(){
 	echo 
 	echo " ================ OPERATING SYSTEM INFORMATION ================ "
 	echo
-	echo " Supporting System: CentOS 6, 7 / Ubuntu 16, 18, 20"
+	echo " Supporting System: CentOS 6, 7 and higher / Ubuntu 16, 18, 20 and higher / Red Had 6, 7, 8, 9 and higher / Oracle Linux 7, 8, 9 or higher "
 	echo
 	echo " -------------------------------------------------------------- "
 	cat /etc/*-release
@@ -38,6 +42,8 @@ support_msg(){
 
 # 기본설정 파일
 CONFIG_FILE="service.properties"
+SERVICE_REGISTERED=""
+SERVICE_AUTO_START=""
 
 ## 파라미터 읽기
 while [ "$1" != "" ]; do
@@ -45,6 +51,32 @@ while [ "$1" != "" ]; do
 		-c | --config)
 			shift
 			CONFIG_FILE=$1
+			;;
+		-r | --reg-svc)
+			shift
+			case $1 in
+				y | Y)
+					SERVICE_REGISTERED="Y"
+					;;					
+				n | N)
+					SERVICE_REGISTERED="N"
+					;;					
+				*)
+					;;
+			esac
+			;;
+		-s | --start-svc)
+			shift
+			case $1 in
+				y | Y)
+					SERVICE_AUTO_START="Y"
+					;;					
+				n | N)
+					SERVICE_AUTO_START="N"
+					;;					
+				*)
+					;;
+			esac
 			;;
 		-h | --help)	 
 			usage "--help"
@@ -57,24 +89,6 @@ while [ "$1" != "" ]; do
 	esac
 	shift
 done
-
-validate() {
-	local INP_VALUE=$1
-	local SYS_VALUE=$2
-	
-	if [ "$INP_VALUE" != "$SYS_VALUE" ]
-	then
-		echo
-		echo
-		echo " ============ SYSTEM INFORMATION============ "
-		cat /etc/*-release
-		echo " =========================================== "
-		echo
-		echo
-		usage "Illegal System Information"
-		exit 2
-	fi
-}
 
 # Assigns a value input by a user to variable.  
 # $1 {string} Question Message.
@@ -97,17 +111,15 @@ read_cli(){
 
 # Loads OS name and OS version. 
 load_os_info(){
-	# CentOS 7 or higher, Ubuntu 16 or higher
+	# CentOS 7 or higher, Ubuntu 16 or higher, Red Hat 6 or higher, Oracle Linux 7 or higher
 	local releasefile="/etc/os-release"
 	
 	if [ -f "$releasefile" ];
 	then
 		echo
 		echo " ---> read $releasefile"
-		#OS_NAME=$(cat /etc/os-release | grep -i "^id=" | sed -e "s/\"//g" | sed -e "s/id=//gi" | tr [:upper:] [:lower:])
-		#OS_VERSION=$(cat /etc/os-release | grep -i "^VERSION_id=" | sed -e "s/\"//g" | sed -e "s/version_id=//gi" | tr -dc '0-9.' | cut -d \. -f1)
-		OS_NAME=$(grep -v "#" /etc/os-release | grep -i "^id=" | sed -e "s/\"//g" | sed -e "s/id=//gi" | tr [:upper:] [:lower:])
-		OS_VERSION=$(grep -v "#"  /etc/os-release | grep -i "^VERSION_id=" | sed -e "s/\"//g" | sed -e "s/version_id=//gi" | tr -dc '0-9.' | cut -d \. -f1)
+		OS_NAME=$(grep -v "#" /etc/os-release | grep -i "^id=" | sed -e "s/\"//g" | sed -e "s/id=//gi" | tr '[:upper:]' '[:lower:]')
+		OS_VERSION=$(grep -v "#"  /etc/os-release | grep -i "^VERSION_ID=" | sed -e "s/\"//g" | sed -e "s/VERSION_ID=//gi" | tr -dc '0-9.' | cut -d \. -f1)
 	else
 		# CentOS 6
 		local releasefile="/etc/centos-release" 
@@ -115,9 +127,7 @@ load_os_info(){
 		then
 			echo
 			echo " ---> read $releasefile"
-			#OS_NAME=$(cat /etc/centos-release | awk {'print $1'} | tr [:upper:] [:lower:])
-			#OS_VERSION=$(cat /etc/centos-release | tr -dc '0-9.'|cut -d \. -f1)
-			OS_NAME=$(grep -v "#" /etc/centos-release | awk {'print $1'} | tr [:upper:] [:lower:])
+			OS_NAME=$(grep -v "#" /etc/centos-release | awk {'print $1'} | tr '[:upper:]' '[:lower:]')
 			OS_VERSION=$(grep -v "#" /etc/centos-release | tr -dc '0-9.'|cut -d \. -f1)
 		else
 			support_msg
@@ -131,33 +141,6 @@ load_os_info(){
 	echo "OS Name="${OS_NAME}
 	echo "OS Verson="${OS_VERSION}
 }
-
-check_centos(){
-	echo
-	echo "-------- ${FUNCNAME[0]} --------"
-	
-	#local OSN=$(cat /etc/centos-release | awk {'print $1'} | tr [:upper:] [:lower:])
-	local OSN=$(grep -v "#" /etc/centos-release | awk {'print $1'} | tr [:upper:] [:lower:])
-	validate ${OS_NAME} $OSN
-	
-	#local OSV=$(cat /etc/centos-release | tr -dc '0-9.'|cut -d \. -f1)
-	local OSV=$(grep -v "#" /etc/centos-release | tr -dc '0-9.'|cut -d \. -f1)
-	validate ${OS_VERSION} $OSV
-}
-
-check_ubuntu(){
-	echo
-	echo "-------- ${FUNCNAME[0]} --------"
-		
-	#local OSN=$(cat /etc/os-release | grep -i "^NAME=" | sed -e "s/\"//g" | sed -e "s/name=//gi" | tr [:upper:] [:lower:])
-	local OSN=$(grep -v "#" /etc/os-release | grep -i "^NAME=" | sed -e "s/\"//g" | sed -e "s/name=//gi" | tr [:upper:] [:lower:])
-	validate ${OS_NAME} $OSN
-		
-	#local OSV=$(cat /etc/os-release | grep -i "^VERSION=" | sed -e "s/\"//g" | sed -e "s/version=//gi" | tr -dc '0-9.' | cut -d \. -f1)
-	local OSV=$(grep -v "#" /etc/os-release | grep -i "^VERSION=" | sed -e "s/\"//g" | sed -e "s/version=//gi" | tr -dc '0-9.' | cut -d \. -f1)
-	validate ${OS_VERSION} $OSV	
-}
-
 
 # $1 {string} Question message.
 # $2 {string} "Y"es string.
@@ -780,8 +763,27 @@ handle_service(){
 					;;
 			esac
 			;;
+		# Oracle Linux
+		ol)
+			case ${os_version} in
+				7)
+					handle_by_systemctl ${svc_cmd} ${svc_cmd_args}
+					;;
+				8)
+					handle_by_systemctl ${svc_cmd} ${svc_cmd_args}
+					;;
+				9)
+					handle_by_systemctl ${svc_cmd} ${svc_cmd_args}
+					;;
+				*)
+					echo
+					echo "Unsupported O.S version. os=${os_name}, version=${os_version}"
+					exit 1
+					;;
+			esac
+			;;
 		# Red Had
-		red) 
+		rhel) 
 			case ${os_version} in
 				6)
 					handle_by_service ${svc_cmd} ${svc_cmd_args}
@@ -803,6 +805,9 @@ handle_service(){
 					handle_by_systemctl ${svc_cmd} ${svc_cmd_args}
 					;;
 				20)
+					handle_by_systemctl ${svc_cmd} ${svc_cmd_args}
+					;;
+				22)
 					handle_by_systemctl ${svc_cmd} ${svc_cmd_args}
 					;;
 				*)
@@ -1070,60 +1075,9 @@ else
 	echo "[DETECTED] No files..."
 fi
 
-echo
-echo "###########################################################################################"
-echo "### -------------------- Move files & directories to specified locations. ------------- ###"
-echo "### -------------------- Move files & directories to specified locations. ------------- ###"
-echo "### -------------------- Move files & directories to specified locations. ------------- ###"
-echo "###########################################################################################"
-
-PROP_COPY="additional.action.move"
-ACTIONS=$(read_prop "${CONFIG_FILE}" $PROP_COPY)
-
-if [ "\${$PROP_COPY}" != "${ACTIONS}" ];then
-	#for action in $(read_prop "${CONFIG_FILE}" $PROP_COPY)
-	for action in ${ACTIONS[@]}
-	do
-		_mv_conf_=$(read_prop "${CONFIG_FILE}" $PROP_COPY"."$action)
-		if [ -z "$_mv_conf_" ];
-		then
-			continue
-		fi
-		
-		# 콤마(,)로 복사 설정목록 분리
-		IFS="," read -a _mv_cfgs_ <<< "${_mv_conf_}"
-		for _mv_cfg_ in ${_mv_cfgs_[@]}
-		do	
-			# src|dst 분리
-		    IFS="|" read -a _mv_info_ <<< "${_mv_cfg_}" 
-		    if [ ${#_mv_info_[@]} -ne 2 ];
-		    then
-		    	echo
-		        echo "[Invalid] step: 'copy addtional resources', resource='$PROP_COPY.$action=${_mv_info_[@]}'"
-		        continue
-		    fi
-		
-			if [ -f "${_mv_info_[1]}" ];
-			then
-				echo
-				echo "[Invalid] 'DESTnation' MUST be a directory. NOT a file. path=${_mv_info_[1]}"
-				continue
-			fi 
-		
-			[ ! -d "${_mv_info_[1]}" ] && mkdir -p "${_mv_info_[1]}"
-		      
-		    echo
-		    eval mv -v "${_mv_info_[0]}" "${_mv_info_[1]}/"
-		    echo "[SUCCESS] cp" "${_mv_info_[0]}" "${_mv_info_[1]}"
-	    done
-	done
-else
-	echo "[DETECTED] No files..."
-fi
-
 AUTOSTART=$(read_prop "${CONFIG_FILE}" "service.autostart")
 # 서비스로 등록하는 경우
-if [ "$AS_A_SERVICE" = "Y" ];
+if [ "$SERVICE_REGISTERED" = "Y" ] || ( [ -z "$SERVICE_REGISTERED" ] && [ "$AS_A_SERVICE" = "Y" ] );
 then	
 	echo
 	echo "###########################################################################################"
@@ -1163,7 +1117,7 @@ then
 	
 	sleep 1
 	
-	if [ "${AUTOSTART}" = "Y" ];
+	if [ "$SERVICE_AUTO_START" = "Y" ] || ( [ -z "$SERVICE_AUTO_START" ] && [ "${AUTOSTART}" = "Y" ] );
 	then
 		# 서비스 시작
 		handle_service ${OS_NAME} ${OS_VERSION} "start" ${SVC_NAME}
@@ -1175,7 +1129,7 @@ then
 		eval ${_status_cmd_}
 	fi
 else
-	if [ "${AUTOSTART}" = "Y" ];
+	if [ "$SERVICE_AUTO_START" = "Y" ] || ( [ -z "$SERVICE_AUTO_START" ] && [ "${AUTOSTART}" = "Y" ] );
 	then
 		# 기존 실행 프로그램 종료
 		_stop_cmd_=$(read_prop "${CONFIG_FILE}" "service.file.exec_stop")

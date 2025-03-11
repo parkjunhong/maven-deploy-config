@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<!-- 공통 dependencies 관리 -->
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<!-- !!! 프로젝트에 맞춰 버전을 설정할 것 !!! -->
-		<version>2.5.7</version>
+		<groupId>kr.co.ymtech.dev.spring-boot</groupId>
+		<artifactId>ymtech-spring-boot-start-parent</artifactId>
+		<version>0.1.0-SNAPSHOT</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
@@ -30,25 +30,14 @@
 		<deploy.directory>deploy</deploy.directory>
 
 		<java.version>1.8</java.version>
-
-		<!-- begin - dependencies / !!! 프로젝트에 맞춰 변경할 것 !!! -->
-		<!-- org.springframework.boot:spring-boot-dependencies:2.5.7 -->
-		<!-- properties:log4j2.version 덮어쓰기 -->
-		<log4j2.version>2.17.1</log4j2.version>
-
-		<open-commons-core.version>1.8.0-SNAPSHOT</open-commons-core.version>
-		<open-commons-spring-web.version>0.4.0-SNAPSHOT</open-commons-spring-web.version>
-		<open-commons-spring-jdbc.version>0.3.0-SNAPSHOT</open-commons-spring-jdbc.version>
-
-		<oracle-jdbc.version>12.2.0.1</oracle-jdbc.version>
-		<!-- end - dependencies / !!! 프로젝트에 맞춰 변경할 것 !!! -->
+		
 	</properties>
 
 	<repositories>
 		<repository>
 			<id>YMTECH Maven Repository</id>
 			<name>ymtech-maven-repo</name>
-			<url>http://nexus3.ymtech.co.kr/repository/maven-public/</url>
+			<url>https://nexus3.ymtech.co.kr/repository/maven-public/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -59,7 +48,6 @@
 	</repositories>
 
 	<dependencies>
-
 		<!-- ************** -->
 		<!-- begin: spring boot -->
 		<dependency>
@@ -70,6 +58,10 @@
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-starter-logging</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<!-- -->
@@ -78,9 +70,41 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<!--
+		https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
 		<!-- end: spring boot -->
 		<!-- ************** -->
-		
+
+		<!-- ************** -->
+		<!-- begin: spring security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- end: spring security -->
+
+		<!-- ************** -->
+		<!-- begin: undertow (WAS) -->
+		<!--
+		https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-undertow -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-undertow</artifactId>
+		</dependency>
+		<!-- end: undertow (WAS) -->
+		<!-- ************** -->
+
+		<!-- BEGIN: thymeleaf 추가 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<!-- END: thymeleaf 추가 -->
+
 		<!-- ************** -->
 		<!-- JDBC -->
 		<dependency>
@@ -92,9 +116,31 @@
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
 		</dependency>
-		<!-- begin: 사용하는 JDBC Connector 정보 -->
-		<!-- !!! 프로젝트에 맞춰 설정할 것 !!! -->
-		<!-- end: 사용하는 JDBC Connector 정보 -->
+		<!-- ************** -->
+
+		<!-- ************** -->
+		<!-- BEGIN: JPA -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mariadb.jdbc</groupId>
+			<artifactId>mariadb-java-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+		</dependency>
+		<!-- E N D: JPA -->
 		<!-- ************** -->
 
 		<!-- ************** -->
@@ -107,18 +153,10 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-<<<<<<< HEAD
-=======
-			<version>${log4j2.version}</version><!-- $NO-MVN-MAN-VER$ -->
->>>>>>> branch 'master' of git@github.com:parkjunhong/maven-deploy-config.git
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-<<<<<<< HEAD
-=======
-			<version>${log4j2.version}</version><!-- $NO-MVN-MAN-VER$ -->
->>>>>>> branch 'master' of git@github.com:parkjunhong/maven-deploy-config.git
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
 		<dependency>
@@ -137,7 +175,6 @@
 		<dependency>
 			<groupId>com.lmax</groupId>
 			<artifactId>disruptor</artifactId>
-			<version>3.3.6</version>
 		</dependency>
 		<!-- end: logging -->
 		<!-- ************** -->
@@ -164,21 +201,34 @@
 		<!-- ************** -->
 
 		<!-- ************** -->
+		<!-- begin: Pagination -->
+		<!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons</artifactId>
+		</dependency>
+		<!-- end: Pagination -->
+		<!-- ************** -->
+
+		<!-- ************** -->
 		<!-- begin: open.commons -->
 		<dependency>
-			<groupId>open.commons</groupId>
+			<groupId>io.github.open-commons</groupId>
 			<artifactId>open-commons-core</artifactId>
-			<version>${open-commons-core.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>open.commons</groupId>
-			<artifactId>open-commons-spring-web</artifactId>
-			<version>${open-commons-spring-web.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>open.commons</groupId>
+			<groupId>io.github.open-commons</groupId>
 			<artifactId>open-commons-spring-jdbc</artifactId>
-			<version>${open-commons-spring-jdbc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.open-commons</groupId>
+			<artifactId>open-commons-spring-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>io.github.open-commons</groupId>
+					<artifactId>open-commons-ssh</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- end: open.commons -->
 		<!-- ************** -->
@@ -188,15 +238,33 @@
 		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
-			<version>0.9.11</version>
 		</dependency>
 		<!-- ************** -->
-		
+
+		<!-- ************** -->
+		<!-- begin: REST API Documentation -->
+
+		<!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+		</dependency>
+
+		<!-- end: REST API Documentation -->
+		<!-- ************** -->
+
+		<!-- begin: TEST -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- end: TEST -->
+		<!-- ************** -->
 
 	</dependencies>
 
@@ -240,7 +308,6 @@
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 					<compilerArgs>
-						<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
 						<arg>-parameters</arg>
 					</compilerArgs>
 				</configuration>
@@ -262,6 +329,23 @@
 			</plugin>
 			<!-- end: compile & attach sources -->
 
+			<!-- begin: javadoc -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<show>private</show>
+					<nohelp>true</nohelp>
+					<additionalOptions>
+						<additionalOption>-Xdoclint:none</additionalOption>
+					</additionalOptions>
+					<charset>${encoding}</charset>
+					<docencoding>${encoding}</docencoding>
+					<encoding>${encoding}</encoding>
+				</configuration>
+			</plugin>
+			<!-- end: javadoc -->
+
 			<!-- begin: make executable jar without dependencies -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -272,14 +356,11 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 							<mainClass>${manifest.mainClass}</mainClass>
+							<useUniqueVersions>false</useUniqueVersions>
 						</manifest>
 					</archive>
 					<outputDirectory>${project.build.directory}/${build.finalName}</outputDirectory>
 				</configuration>
-				<executions>
-					<execution>
-					</execution>
-				</executions>
 			</plugin>
 			<!-- end: make executable jar without dependencies -->
 
@@ -307,7 +388,6 @@
 			<plugin>
 				<groupId>com.alexecollins.maven.plugin</groupId>
 				<artifactId>script-maven-plugin</artifactId>
-				<version>1.0.0</version>
 
 				<executions>
 					<execution>
@@ -322,10 +402,12 @@
 								importPackage(java.lang);
 								importPackage(org.apache.commons.io);
 								importPackage(java.io);
-								
-								var dir = new File(project.getBuild().getDirectory(), "${build.finalName}");
+
+								var dir = new
+								File(project.getBuild().getDirectory(), "${build.finalName}");
 								var profile = new File(dir, ".profile");
-								FileUtils.write(profile, "${build.profile}", "UTF-8");
+								FileUtils.write(profile,
+								"${build.profile}", "UTF-8");
 							</script>
 						</configuration>
 					</execution>
@@ -350,6 +432,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptors>
+						<descriptor>assembly/assembly-copy-workdir.xml</descriptor>
+					</descriptors>
+				</configuration>
 				<executions>
 					<!-- begin: ${build.profile} -->
 					<execution>
@@ -389,32 +476,6 @@
 				</executions>
 			</plugin>
 			<!-- end: make 'deploy' -->
-
-			<!-- begin: javadoc -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<goal>javadoc</goal>
-					<show>private</show>
-					<nohelp>true</nohelp>
-					<additionalOptions>
-						<additionalOption>-Xdoclint:none</additionalOption>
-					</additionalOptions>
-					<charset>${encoding}</charset>
-					<docencoding>${encoding}</docencoding>
-					<encoding>${encoding}</encoding>
-				</configuration>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>				
-			</plugin>
-			<!-- end: javadoc -->
 		</plugins>
 	</build>
 

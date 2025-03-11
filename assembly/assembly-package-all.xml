@@ -10,12 +10,12 @@
 	<!-- begin: configuration for a specific spring prfile -->
 	<files>
 		<file>
-			<source>${project.basedir}/config/${build.profile}/application-${build.profile}.yml</source>
+			<source>${project.basedir}/config/profile/${build.profile}/application-${build.profile}.yml</source>
 			<outputDirectory>/config</outputDirectory>
 			<destName>application.yml</destName>
 		</file>
 		<file>
-			<source>${project.basedir}/config/${build.profile}/log4j2-${build.profile}.yml</source>
+			<source>${project.basedir}/config/profile/${build.profile}/log4j2-${build.profile}.yml</source>
 			<outputDirectory>/config</outputDirectory>
 			<destName>log4j2.yml</destName>
 		</file>
@@ -25,6 +25,17 @@
 	<!-- ======================================== -->
 	<!-- begin: common configurations -->
 	<fileSets>
+		<!-- ================================================================ -->
+		<!-- begin: configuration for a additional application configurations -->
+		<fileSet>
+			<directory>${project.basedir}/config/import/${build.profile}</directory>
+			<outputDirectory>/config</outputDirectory>
+			<includes>
+				<include>*.yml</include>
+			</includes>
+		</fileSet>
+		<!-- end: configuration for a additional application configurations -->
+		<!-- ================================================================ -->
 		<fileSet>
 			<directory>${project.basedir}/shell</directory>
 			<outputDirectory>/</outputDirectory>
