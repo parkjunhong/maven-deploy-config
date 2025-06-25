@@ -33,6 +33,7 @@
 			<includes>
 				<include>*.yml</include>
 			</includes>
+			<useDefaultExcludes>false</useDefaultExcludes>
 		</fileSet>
 		<!-- end: configuration for a additional application configurations -->
 		<!-- ================================================================ -->

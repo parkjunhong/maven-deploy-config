@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>kr.co.ymtech.dev.spring-boot</groupId>
 		<artifactId>ymtech-spring-boot-start-parent</artifactId>
-		<version>0.1.0-SNAPSHOT</version>
+		<version>0.2.0-SNAPSHOT</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
