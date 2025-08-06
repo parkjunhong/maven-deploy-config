@@ -306,10 +306,11 @@ update_property(){
 	# 데이터에 경로구분자(/)가 포함된 경우 변경
 	local targetfile=$1
 	local oldstr=$2
+	local safe_oldstr="${oldstr//\./\\.}"
 	local newstr=$3
-	local newstr=${newstr//\//\\\/}
+	local safe_newstr="${newstr//\//\\\/}"
 	# format of a variable in xxx.service file is ${variable_name}.
-	eval "sed -i 's/\${$oldstr}/$newstr/g' ${targetfile}" 
+	sed -i "s/\${${safe_oldstr}}/${safe_newstr}/g" "$targetfile"
 }
 
 # 큰따옴표(") 또는 작은 따옴표(')로 묶은 문자열을 찾는다.
