@@ -7,10 +7,6 @@ After=${service.file.after}
 
 [Service]
 Type=${service.file.type}
-
-#Environment=
-#Environment=
-
 User=${service.file.user}
 Group=${service.file.group}
 

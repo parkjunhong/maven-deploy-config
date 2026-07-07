@@ -1,0 +1,14 @@
+services:
+  service:  
+    image: ${build.name}:latest
+    container_name: ${build.name}
+    # 👇 컨테이너 프로세스를 호스트 사용자의 권한으로 실행하도록 지정
+    user: "${HOST_UID}:${HOST_GID}"
+    ports:
+      - "${server.port}:${server.port}"
+    volumes: # host path : container path
+      - ${log.dir}:/log
+      - ${install.dir}/config:/app/${group}/${build.name}/config
+    environment:
+      - TZ=${dockerfile.env.timezone}
+    restart: unless-stopped

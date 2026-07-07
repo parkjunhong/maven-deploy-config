@@ -9,16 +9,16 @@
 	<!-- ================================================= -->
 	<!-- begin: configuration for a specific spring prfile -->
 	<files>
-		<file>
-			<source>${project.basedir}/config/profile/${build.profile}/application-${build.profile}.yml</source>
-			<outputDirectory>/config</outputDirectory>
-			<destName>application.yml</destName>
-		</file>
-		<file>
-			<source>${project.basedir}/config/profile/${build.profile}/log4j2-${build.profile}.yml</source>
-			<outputDirectory>/config</outputDirectory>
-			<destName>log4j2.yml</destName>
-		</file>
+    <file>
+      <source>${project.basedir}/config.profiles/${build.profile}/application-${build.profile}.yml</source>
+      <outputDirectory>/config</outputDirectory>
+      <destName>application.yml</destName>
+    </file>
+    <file>
+      <source>${project.basedir}/config.profiles/${build.profile}/log4j2-${build.profile}.yml</source>
+      <outputDirectory>/config</outputDirectory>
+      <destName>log4j2.yml</destName>
+    </file>
 	</files>
 	<!-- end: configuration for a specific spring prfile -->
 	<!-- =============================================== -->
@@ -28,7 +28,7 @@
 		<!-- ================================================================ -->
 		<!-- begin: configuration for a additional application configurations -->
 		<fileSet>
-			<directory>${project.basedir}/config/import/${build.profile}</directory>
+			<directory>${project.basedir}/config.profiles/import/${build.profile}</directory>
 			<outputDirectory>/config</outputDirectory>
 			<includes>
 				<include>*.yml</include>
@@ -37,73 +37,103 @@
 		</fileSet>
 		<!-- end: configuration for a additional application configurations -->
 		<!-- ================================================================ -->
-		<fileSet>
-			<directory>${project.basedir}/shell</directory>
-			<outputDirectory>/</outputDirectory>
-			<includes>
-				<include>*.sh</include>
-			</includes>
-			<fileMode>0755</fileMode>
-		</fileSet>
-		<fileSet>
-			<directory>${project.basedir}/shell/crontab</directory>
-			<outputDirectory>/crontab</outputDirectory>
-			<includes>
-				<include>**</include>
-			</includes>
-		</fileSet>
-		<fileSet>
-			<directory>${project.basedir}/shell/ctrl</directory>
-			<outputDirectory>/ctrl</outputDirectory>
-			<excludes>
-				<exclude>*.sh</exclude>
-			</excludes>
-		</fileSet>
-		<fileSet>
-			<directory>${project.basedir}/shell/ctrl</directory>
-			<outputDirectory>/ctrl</outputDirectory>
-			<includes>
-				<include>*.sh</include>
-			</includes>
-			<fileMode>0755</fileMode>
-		</fileSet>
-		<fileSet>
-			<directory>${project.basedir}/shell/monitor</directory>
-			<outputDirectory>/monitor</outputDirectory>
-			<includes>
-				<include>*.sh</include>
-			</includes>
-			<fileMode>0755</fileMode>
-		</fileSet>			
-		<fileSet>
-			<directory>${project.build.directory}/${build.finalName}</directory>
-			<outputDirectory>/</outputDirectory>
-			<includes>
-				<include>**</include>
-			</includes>
-		</fileSet>
-		<!-- +++++++++++++++++++++++++++++++ -->
-		<!-- begin: COPY INSTALL SHELL FILES -->
-		<fileSet>
-			<directory>${project.basedir}/workdir/install/</directory>
-			<outputDirectory>/install</outputDirectory>
-			<includes>
-				<include>**</include>
-			</includes>
-			<excludes>
-				<exclude>**/*.sh</exclude>
-			</excludes>
-		</fileSet>
-		<fileSet>
-			<directory>${project.basedir}/workdir/install/</directory>
-			<outputDirectory>/install</outputDirectory>
-			<includes>
-				<include>**/*.sh</include>
-			</includes>
-			<fileMode>755</fileMode>
-		</fileSet>
-		<!-- end: COPY INSTALL SHELL FILES -->
-		<!-- +++++++++++++++++++++++++++++ -->
-	</fileSets>
-	<!-- ======================================== -->
+    <fileSet>
+      <directory>${project.basedir}/docker</directory>
+      <outputDirectory>/docker</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/docker</directory>
+      <outputDirectory>/docker</outputDirectory>
+      <excludes>
+        <exclude>*.sh</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/docker-compose</directory>
+      <outputDirectory>/docker-compose</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/docker-compose</directory>
+      <outputDirectory>/docker-compose</outputDirectory>
+      <excludes>
+        <exclude>*.sh</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/shell</directory>
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/shell/crontab</directory>
+      <outputDirectory>/crontab</outputDirectory>
+      <includes>
+        <include>**</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/shell/ctrl</directory>
+      <outputDirectory>/ctrl</outputDirectory>
+      <excludes>
+        <exclude>*.sh</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/shell/ctrl</directory>
+      <outputDirectory>/ctrl</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/shell/monitor</directory>
+      <outputDirectory>/monitor</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+      <fileMode>0755</fileMode>
+    </fileSet>      
+    <fileSet>
+      <directory>${project.build.directory}/${build.finalName}</directory>
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>**</include>
+      </includes>
+    </fileSet>
+    <!-- +++++++++++++++++++++++++++++++ -->
+    <!-- begin: COPY INSTALL SHELL FILES -->
+    <fileSet>
+      <directory>${project.basedir}/workdir/install/</directory>
+      <outputDirectory>/install</outputDirectory>
+      <includes>
+        <include>**</include>
+      </includes>
+      <excludes>
+        <exclude>**/*.sh</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/workdir/install/</directory>
+      <outputDirectory>/install</outputDirectory>
+      <includes>
+        <include>**/*.sh</include>
+      </includes>
+      <fileMode>755</fileMode>
+    </fileSet>
+    <!-- end: COPY INSTALL SHELL FILES -->
+    <!-- +++++++++++++++++++++++++++++ -->
+  </fileSets>
+  <!-- ======================================== -->
 </assembly>

@@ -1,484 +1,286 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<!-- 공통 dependencies 관리 -->
-	<parent>
-		<groupId>kr.co.ymtech.dev.spring-boot</groupId>
-		<artifactId>ymtech-spring-boot-start-parent</artifactId>
-		<version>0.2.0-SNAPSHOT</version>
-		<relativePath /> <!-- lookup parent from repository -->
-	</parent>
-	<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
-	<groupId>groupId</groupId>
-	<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
-	<artifactId>artifactId</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
-	<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
-	<name>개발 프로젝트</name>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>kr.co.ymtech.dev.spring-boot</groupId>
+    <artifactId>ymtech-spring-boot-start-parent</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+    <relativePath /> <!-- lookup parent from repository -->
+  </parent>
+  <!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
+  <groupId>groupId</groupId>
+  <!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
+  <artifactId>artifactId</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
+  <name>개발 프로젝트</name>
 
-	<properties>
-		<!-- build.profile 은 mvn cli parameter로 전달받는다. -->
-		<!-- mvn clean package -Dbuild.profile={value} -->
-		<build.profile></build.profile>
+  <properties>
+    <!-- build.profile 은 mvn cli parameter로 전달받는다. -->
+    <!-- mvn clean package -Dbuild.profile={value} -->
+    <build.profile></build.profile>
+    
+    <!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
+    <build.finalName>{finalName}</build.finalName>
+    <!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
+    <manifest.mainClass>{FQCN: Full Qualified Class Name}</manifest.mainClass>
+  </properties>
 
-		<encoding>UTF-8</encoding>
+  <repositories>
+    <repository>
+      <id>YMTECH Maven Repository</id>
+      <name>ymtech-maven-repo</name>
+      <url>https://nexus3.ymtech.co.kr/repository/maven-public/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
-		<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
-		<build.finalName>{finalName}</build.finalName>
-		<!-- !!! 프로젝트에 맞춰 변경할 것 !!! -->
-		<manifest.mainClass>{FQCN: Full Qualified Class Name}</manifest.mainClass>
-		<deploy.directory>deploy</deploy.directory>
 
-		<java.version>1.8</java.version>
-		
-	</properties>
+  <dependencies>
+    <!-- ************** -->
+    <!-- begin: spring boot -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <!-- -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <!--
+    https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
 
-	<repositories>
-		<repository>
-			<id>YMTECH Maven Repository</id>
-			<name>ymtech-maven-repo</name>
-			<url>https://nexus3.ymtech.co.kr/repository/maven-public/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
 
-	<dependencies>
-		<!-- ************** -->
-		<!-- begin: spring boot -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-logging</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-tomcat</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!-- -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<!--
-		https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-		<!-- end: spring boot -->
-		<!-- ************** -->
+    <!-- end: spring boot -->
+    <!-- ************** -->
 
-		<!-- ************** -->
-		<!-- begin: spring security -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<!-- end: spring security -->
+    <!-- Spring Security Class 사용 목적 -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-web</artifactId>
+    </dependency>
+    <!-- -->
 
-		<!-- ************** -->
-		<!-- begin: undertow (WAS) -->
-		<!--
-		https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-undertow -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-undertow</artifactId>
-		</dependency>
-		<!-- end: undertow (WAS) -->
-		<!-- ************** -->
+    <!-- ************** -->
+    <!-- >>> begin: Validation -->
+    <!--
+      https://mvnrepository.com/artifact/jakarta.validation/jakarta.validation-api -->
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+    </dependency>
+    <!-- <<< end: Validation -->
+    <!-- ************** -->
 
-		<!-- BEGIN: thymeleaf 추가 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-		<!-- END: thymeleaf 추가 -->
+    <!-- ************** -->
+    <!-- >>> begin: Annotation -->
+    <!-- Source: https://mvnrepository.com/artifact/org.jspecify/jspecify -->
+    <dependency>
+      <groupId>org.jspecify</groupId>
+      <artifactId>jspecify</artifactId>
+    </dependency>
+    <!--
+      https://mvnrepository.com/artifact/jakarta.validation/jakarta.validation-api -->
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+    </dependency>
+    <!-- <<< end: Annotation -->
+    <!-- ************** -->
 
-		<!-- ************** -->
-		<!-- JDBC -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-jdbc</artifactId>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
-		<dependency>
-			<groupId>com.zaxxer</groupId>
-			<artifactId>HikariCP</artifactId>
-		</dependency>
-		<!-- ************** -->
+    <!-- ************** -->
+    <!-- JDBC -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jdbc</artifactId>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+    </dependency>
 
-		<!-- ************** -->
-		<!-- BEGIN: JPA -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jdbc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.mariadb.jdbc</groupId>
-			<artifactId>mariadb-java-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aspects</artifactId>
-		</dependency>
-		<!-- E N D: JPA -->
-		<!-- ************** -->
+    <!-- begin: PostgreSQL -->
+    <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+    <!-- end: PostgreSQL -->
+    <!-- ************** -->
 
-		<!-- ************** -->
-		<!-- begin: logging / log4j2 -->
-		<!-- https://mvnrepository.com/artifact/com.lmax/disruptor -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jul-to-slf4j</artifactId>
-		</dependency>
-		<!-- for log4j-2.x: making all asynchronous loggers -->
-		<dependency>
-			<groupId>com.lmax</groupId>
-			<artifactId>disruptor</artifactId>
-		</dependency>
-		<!-- end: logging -->
-		<!-- ************** -->
+    <!-- ********************** -->
+    <!-- >>> begin: logging -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-log4j2</artifactId>
+    </dependency>
 
-		<!-- ************** -->
-		<!-- begin: jackson -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-yaml</artifactId>
-		</dependency>
-		<!-- end: jackson -->
-		<!-- ************** -->
+    <!-- https://mvnrepository.com/artifact/com.lmax/disruptor -->
+    <!-- for llog4j-2.x: making all asynchronous loggers -->
+    <dependency>
+      <groupId>com.lmax</groupId>
+      <artifactId>disruptor</artifactId>
+    </dependency>
+    <!-- <<< end: logging -->
+    <!-- ********************** -->
 
-		<!-- ************** -->
-		<!-- begin: Pagination -->
-		<!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons -->
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-commons</artifactId>
-		</dependency>
-		<!-- end: Pagination -->
-		<!-- ************** -->
+    <!-- ************** -->
+    <!-- begin: jackson -->
+    <dependency>
+      <groupId>tools.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+    <!-- end: jackson -->
+    <!-- ************** -->
 
-		<!-- ************** -->
-		<!-- begin: open.commons -->
-		<dependency>
-			<groupId>io.github.open-commons</groupId>
-			<artifactId>open-commons-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.github.open-commons</groupId>
-			<artifactId>open-commons-spring-jdbc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.github.open-commons</groupId>
-			<artifactId>open-commons-spring-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>io.github.open-commons</groupId>
-					<artifactId>open-commons-ssh</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!-- end: open.commons -->
-		<!-- ************** -->
+    <!-- ************** -->
+    <!-- begin: Pagination -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-data-commons</artifactId>
+    </dependency>
+    <!-- end: Pagination -->
+    <!-- ************** -->
 
-		<!-- ************** -->
-		<!-- https://mvnrepository.com/artifact/org.reflections/reflections -->
-		<dependency>
-			<groupId>org.reflections</groupId>
-			<artifactId>reflections</artifactId>
-		</dependency>
-		<!-- ************** -->
+    <!-- ************** -->
+    <!-- begin: open.commons -->
+    <dependency>
+      <groupId>io.github.open-commons</groupId>
+      <artifactId>open-commons-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.open-commons</groupId>
+      <artifactId>open-commons-spring-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.open-commons</groupId>
+      <artifactId>open-commons-spring-web</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.github.open-commons</groupId>
+          <artifactId>open-commons-ssh</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- end: open.commons -->
+    <!-- ************** -->
 
-		<!-- ************** -->
-		<!-- begin: REST API Documentation -->
+    <!-- ************** -->
+    <!-- https://mvnrepository.com/artifact/org.reflections/reflections -->
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+    </dependency>
+    <!-- ************** -->
 
-		<!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui -->
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-ui</artifactId>
-		</dependency>
+    <!-- ************** -->
+    <!-- begin: TEST -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version> <!--$NO-MVN-MAN-VER$ -->
+      <scope>test</scope>
+    </dependency>
+    <!-- end: TEST -->
+    <!-- ************** -->
 
-		<!-- end: REST API Documentation -->
-		<!-- ************** -->
+  </dependencies>
 
-		<!-- begin: TEST -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<!-- end: TEST -->
-		<!-- ************** -->
+  <build>
+    <finalName>${build.finalName}</finalName>
+    <defaultGoal>install</defaultGoal>
+    <sourceDirectory>src/main/java</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*.*</include>
+        </includes>
+      </resource>
+    </resources>
 
-	</dependencies>
+    <plugins>
+      <!-- begin: make 'clean external directories' -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+      </plugin>
+      <!-- end: make 'clean external directories' -->
 
-	<build>
-		<finalName>${build.finalName}</finalName>
-		<defaultGoal>install</defaultGoal>
-		<sourceDirectory>src/main/java</sourceDirectory>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<includes>
-					<include>**/*.*</include>
-				</includes>
-			</resource>
-		</resources>
-		<plugins>
+      <!-- begin: compile & attach sources -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <!-- end: compile & attach sources -->
 
-			<!-- begin: make 'clean external directories' -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-clean-plugin</artifactId>
-				<configuration>
-					<filesets>
-						<fileset>
-							<directory>deploy/${build.profile}</directory>
-							<includes>
-								<include>**/*</include>
-							</includes>
-							<followSymlinks>false</followSymlinks>
-						</fileset>
-					</filesets>
-				</configuration>
-			</plugin>
-			<!-- end: make 'clean external directories' -->
+      <!-- begin: make executable jar without dependencies -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
+      <!-- end: make executable jar without dependencies -->
 
-			<!-- begin: compile & attach sources -->
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<encoding>UTF-8</encoding>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-					<compilerArgs>
-						<arg>-parameters</arg>
-					</compilerArgs>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<configuration>
-					<encoding>UTF-8</encoding>
-				</configuration>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- end: compile & attach sources -->
+      <!-- begin: make libraries -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+      <!-- end: make libraries -->
 
-			<!-- begin: javadoc -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<show>private</show>
-					<nohelp>true</nohelp>
-					<additionalOptions>
-						<additionalOption>-Xdoclint:none</additionalOption>
-					</additionalOptions>
-					<charset>${encoding}</charset>
-					<docencoding>${encoding}</docencoding>
-					<encoding>${encoding}</encoding>
-				</configuration>
-			</plugin>
-			<!-- end: javadoc -->
+      <!-- begin: make 'profile signature' -->
+      <plugin>
+        <groupId>com.alexecollins.maven.plugin</groupId>
+        <artifactId>script-maven-plugin</artifactId>
+      </plugin>
+      <!-- end: make 'profile signature' -->
 
-			<!-- begin: make executable jar without dependencies -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>${manifest.mainClass}</mainClass>
-							<useUniqueVersions>false</useUniqueVersions>
-						</manifest>
-					</archive>
-					<outputDirectory>${project.build.directory}/${build.finalName}</outputDirectory>
-				</configuration>
-			</plugin>
-			<!-- end: make executable jar without dependencies -->
+      <!-- begin: make 'deploy' -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
+      <!-- end: make 'deploy' -->
 
-			<!-- begin: make libraries -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<!-- configure the plugin here -->
-							<outputDirectory>${project.build.directory}/${build.finalName}/lib</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- end: make libraries -->
+      <!-- begin: javadoc -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+      <!-- end: javadoc -->
 
-			<!-- begin: make 'profile signature' -->
-			<plugin>
-				<groupId>com.alexecollins.maven.plugin</groupId>
-				<artifactId>script-maven-plugin</artifactId>
+      <!-- >>> begin: enforce-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+      </plugin>
+      <!-- <<< end: enforce-->
+    </plugins>
 
-				<executions>
-					<execution>
-						<id>Signature '${build.profile}'</id>
-						<phase>package</phase>
-						<goals>
-							<goal>execute</goal>
-						</goals>
-						<configuration>
-							<language>javascript</language>
-							<script>
-								importPackage(java.lang);
-								importPackage(org.apache.commons.io);
-								importPackage(java.io);
-
-								var dir = new
-								File(project.getBuild().getDirectory(), "${build.finalName}");
-								var profile = new File(dir, ".profile");
-								FileUtils.write(profile,
-								"${build.profile}", "UTF-8");
-							</script>
-						</configuration>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.mozilla</groupId>
-						<artifactId>rhino</artifactId>
-						<version>1.7R5</version>
-					</dependency>
-					<!-- additional import for doing file I/O -->
-					<dependency>
-						<groupId>commons-io</groupId>
-						<artifactId>commons-io</artifactId>
-						<version>2.4</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<!-- end: make 'profile signature' -->
-
-			<!-- begin: make 'deploy' -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptors>
-						<descriptor>assembly/assembly-copy-workdir.xml</descriptor>
-					</descriptors>
-				</configuration>
-				<executions>
-					<!-- begin: ${build.profile} -->
-					<execution>
-						<id>Package '${build.profile}'</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<finalName>${build.finalName}</finalName>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>assembly/assembly-package-all.xml</descriptor>
-							</descriptors>
-							<outputDirectory>${project.basedir}/${deploy.directory}/${build.profile}</outputDirectory>
-						</configuration>
-					</execution>
-					<execution>
-						<id>Install '${build.profile}'</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<formats>
-								<format>dir</format>
-							</formats>
-							<finalName>${build.profile}</finalName>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>assembly/assembly-copy-workdir.xml</descriptor>
-							</descriptors>
-							<outputDirectory>${project.basedir}/${deploy.directory}</outputDirectory>
-						</configuration>
-					</execution>
-					<!-- end: ${build.profile} -->
-				</executions>
-			</plugin>
-			<!-- end: make 'deploy' -->
-		</plugins>
-	</build>
-
-	<description>개발 프로젝트 설명</description>
-
+  </build>
 </project>
