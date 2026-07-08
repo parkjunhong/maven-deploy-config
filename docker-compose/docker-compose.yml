@@ -7,7 +7,7 @@ services:
     ports:
       - "${server.port}:${server.port}"
     volumes: # host path : container path
-      - ${log.dir}:/log
+      - ${log.dir}:/log/${group}/${build.name}
       - ${install.dir}/config:/app/${group}/${build.name}/config
     environment:
       - TZ=${dockerfile.env.timezone}
