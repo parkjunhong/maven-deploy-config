@@ -1160,6 +1160,12 @@ else
   else
     # 일반 설치시 제어 파일 삭제.
     rm -fv "${TMP_INST_DIR}/start.sh" "${TMP_INST_DIR}/stop.sh" "${TMP_INST_DIR}/status.sh"
+    
+    # 'docker image' 버전 정보를 Maven Project 'pom.xml' 의 '<project><versoin>' 정보를 이용.
+    IMAGE_VERSION="latest"
+    if [ -f "./${BUILD_NAME}/.version" ]; then
+      IMAGE_VERSION=$(cat ./${BUILD_NAME}/.version)
+    fi
   
     # 'docker image' 생성을 위한 파일
     echo "📝 [BEGIN] Docker 이미지 빌드 시작."
@@ -1170,14 +1176,15 @@ else
     echo "🔄 >>> 내부 스크립트의 경로를 컨테이너 환경으로 치환합니다."
     find "${TMP_INST_DIR}" -type f -name "*.sh" -exec sed -i 's|'${INST_DIR}'|/app/'${GROUP_NAME}'/'${BUILD_NAME}'|g' {} +
     
-    echo "🔨 >>> Docker 이미지 빌드 시작..."
-    sudo docker build -f "${TMP_INST_DIR}/Dockerfile" -t "${BUILD_NAME}:latest" "${TMP_INST_DIR}"
+    IMAGE_TAG="${BUILD_NAME}:${IMAGE_VERSION}"
+    echo "🔨 >>> Docker 이미지 (${IMAGE_TAG}) 빌드 시작..."
+    sudo docker build -f "${TMP_INST_DIR}/Dockerfile" -t "${IMAGE_TAG}" "${TMP_INST_DIR}"
     
     echo "✅ [SUCCESS] Docker 이미지 빌드 완료."
   fi
   
   LOG_DIR=$(read_prop "${CONFIG_FILE}" "log.dir")
-  find "${TMP_INST_DIR}" -type f -name "log4j2.yml" -exec sed -i 's|'${LOG_DIR}'|/log|g' {} +
+  find "${TMP_INST_DIR}" -type f -name "log4j2.yml" -exec sed -i 's|'${LOG_DIR}'|/log/'${GROUP_NAME}'/'${BUILD_NAME}'|g' {} +
     
   if [ "$BUILD_ONLY" == "Y" ]; then
     echo "🏁 >>> [--build-only] 옵션이 켜져 있어 이미지를 다운로드 및 배포 데이터를 생성합니다."
@@ -1198,8 +1205,17 @@ else
     echo "💾 >>> 오프라인 배포를 위해 이미지를 파일로 추출합니다: ${OFFLINE_IMAGE_FILE}"
     
     # if문으로 명시적 에러 처리 및 -o 대신 파일 리다이렉션(>)으로 권한 문제 우회
-    if sudo docker save "${BUILD_NAME}:latest" > "${OFFLINE_IMAGE_FILE}"; then
+    if sudo docker save "${IMAGE_TAG}" > "${OFFLINE_IMAGE_FILE}"; then
       echo "✅ [SUCCESS] sudo docker save > \"${OFFLINE_IMAGE_FILE}\""
+      
+      # 🌟 이미지를 파일로 추출한 후 로컬 Docker 저장소에서 삭제합니다.
+      echo "🗑️ >>> 추출이 완료된 이미지를 로컬 저장소에서 삭제(정리)합니다."
+      if sudo docker rmi "${IMAGE_TAG}" >/dev/null 2>&1; then
+        echo "✅ [SUCCESS] sudo docker rmi \"${IMAGE_TAG}\""
+      else
+        # 삭제 중 오류(컨테이너가 사용 중 등)가 발생해도 스크립트 진행에는 방해되지 않도록 경고만 출력합니다.
+        echo "⚠️ [WARNING] 로컬 이미지 삭제 실패. 무시하고 진행합니다."
+      fi
     else
       echo "❌ [FAIL] Docker 이미지를 저장하는 데 실패했습니다."
       clean_temp_dir "${BUILD_NAME}" "${TMP_INST_DIR}"

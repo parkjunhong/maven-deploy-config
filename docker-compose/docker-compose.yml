@@ -1,6 +1,6 @@
 services:
   service:  
-    image: ${build.name}:latest
+    image: ${build.name}:${IMAGE_TAG:-latest}
     container_name: ${build.name}
     # 👇 컨테이너 프로세스를 호스트 사용자의 권한으로 실행하도록 지정
     user: "${HOST_UID}:${HOST_GID}"

@@ -66,11 +66,19 @@ echo "DIRECTORY: ${INSTALL_DIR}"
 echo "APP_NAME : ${APP_NAME}"
 echo "COMPOSE  : ${COMPOSE_CMD}"
 
-# 👤 [추가] sudo 실행 여부와 관계없이 실제 계정의 UID/GID를 환경 변수로 내보냅니다.
+# 👤 sudo 실행 여부와 관계없이 실제 계정의 UID/GID를 환경 변수로 내보냅니다.
 ACTUAL_USER=${SUDO_USER:-$USER}
 export HOST_UID=$(id -u "${ACTUAL_USER}")
 export HOST_GID=$(id -g "${ACTUAL_USER}")
 echo "HOST_USER: ${ACTUAL_USER} (UID: ${HOST_UID}, GID: ${HOST_GID})"
+
+# 🌟 로컬 저장소에서 가장 최근에 생성된 이미지의 태그를 자동 감지
+IMAGE_NAME="${build.name}"
+# docker images 명령어는 기본적으로 생성일(최신순) 기준으로 정렬됩니다.
+# latest 태그를 제외한 목록 중 가장 첫 번째(최신) 태그를 추출합니다.
+DETECTED_TAG=$(docker images "${IMAGE_NAME}" --format '{{.Tag}}' | grep -v '^latest$' | head -n 1)
+# 감지된 태그가 있으면 사용하고, 아예 없으면 기본값(latest)을 사용합니다.
+export IMAGE_TAG=${DETECTED_TAG:-latest}
 
 # eval을 사용하지 않고, 공백이 포함될 수 있는 경로를 쌍따옴표로 안전하게 감싸서 직접 실행합니다.
 {
