@@ -2,13 +2,17 @@ services:
   service:  
     image: ${build.name}:${IMAGE_TAG:-latest}
     container_name: ${build.name}
-    # 👇 컨테이너 프로세스를 호스트 사용자의 권한으로 실행하도록 지정
+    # 컨테이너 프로세스를 호스트 사용자의 권한으로 실행하도록 지정
     user: "${HOST_UID}:${HOST_GID}"
+    extra_hosts:
+      # 'host-gateway'는 'docker bridge' 네트워크의 Gateway IP 를 갖는 '도메인' 정보를 '${docker-extra_hosts-host_gateway}'으로 설정함.
+      - ${docker-extra_hosts-host_gateway}:host-gateway
     ports:
       - "${server.port}:${server.port}"
     volumes: # host path : container path
       - ${log.dir}:/log/${group}/${build.name}
       - ${install.dir}/config:/app/${group}/${build.name}/config
+      - /svc/igmoip/data/event:/svc/igmoip/data/event
     environment:
       - TZ=${dockerfile.env.timezone}
     restart: unless-stopped

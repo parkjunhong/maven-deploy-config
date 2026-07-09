@@ -77,6 +77,22 @@ support_msg() {
   echo " =============================================================== "
 }
 
+# 입력받은 경로를 절대 경로로 변경합니다.
+normalize_path() {
+    local path="$1"
+    
+   if [[ $# -eq 0 || "$path" =~ ^[[:space:]]*$ ]]; then
+        echo "abspath: invalid empty path" >&2
+        return 1
+    fi
+
+    if command -v realpath >/dev/null 2>&1; then
+        realpath -m -- "$path"
+    else
+        readlink -m -- "$path"
+    fi
+}
+
 # 기본설정 파일
 CONFIG_FILE="service.properties"
 SERVICE_REGISTERED="Y"
@@ -875,7 +891,7 @@ clean_temp_dir() {
   echo
   echo "🧹🧹🧹 임시 디렉토리를 삭제합니다. "
   for dir in "${targets[@]}"; do
-    echo " - ${dir}"
+    echo " - $(normalize_path ${dir})"
     
     if [ -z "${dir}" ] || [ "${dir}" == "/" ] || [ "${dir}" == "." ] || [ "${dir}" == ".." ]; then
       echo "⚠️ [경고] 유효하지 않거나 시스템에 치명적인 경로입니다. 삭제를 건너뜁니다: '${dir}'" >&2
@@ -1174,7 +1190,7 @@ else
     
      # 컨테이너 내부 절대경로 변환 (Host 경로 -> Container 경로)
     echo "🔄 >>> 내부 스크립트의 경로를 컨테이너 환경으로 치환합니다."
-    find "${TMP_INST_DIR}" -type f -name "*.sh" -exec sed -i 's|'${INST_DIR}'|/app/'${GROUP_NAME}'/'${BUILD_NAME}'|g' {} +
+    find "${TMP_INST_DIR}" -type f -name "*.sh" -exec sed -i 's|'"${INST_DIR}"'|/app/'"${GROUP_NAME}"'/'"${BUILD_NAME}"'|g' {} +
     
     IMAGE_TAG="${BUILD_NAME}:${IMAGE_VERSION}"
     echo "🔨 >>> Docker 이미지 (${IMAGE_TAG}) 빌드 시작..."
@@ -1184,7 +1200,7 @@ else
   fi
   
   LOG_DIR=$(read_prop "${CONFIG_FILE}" "log.dir")
-  find "${TMP_INST_DIR}" -type f -name "log4j2.yml" -exec sed -i 's|'${LOG_DIR}'|/log/'${GROUP_NAME}'/'${BUILD_NAME}'|g' {} +
+  find "${TMP_INST_DIR}" -type f -name "log4j2.yml" -exec sed -i 's|'"${LOG_DIR}"'|/log/'"${GROUP_NAME}"'/'"${BUILD_NAME}"'|g' {} +
     
   if [ "$BUILD_ONLY" == "Y" ]; then
     echo "🏁 >>> [--build-only] 옵션이 켜져 있어 이미지를 다운로드 및 배포 데이터를 생성합니다."
@@ -1250,6 +1266,15 @@ else
   echo "🐳 >>> 'docker compose 기반 환경'을 생성합니다."
   # 복사할 파일: 'docker-compose.yml', 'dc-start.sh', 'dc-stop.sh', 'dc-status.sh'
   copy_files "${BUILD_NAME}/docker-compose" "${TMP_INST_DIR}" "docker-compose"
+  
+  # 'docker-compose' 정보 보정
+  # 1. `${docker.extra_hosts.host_gateway}` 값을 설정파일에서 읽어온 정보로 치환. 없는 경우 "host.docker.internal"  
+  host_gateway=$(read_prop "${CONFIG_FILE}" "docker.extra_hosts.host_gateway")
+  if [ "${host_gateway}" = "\${docker.extra_hosts.host_gateway}" ] || [[ "${host_gateway}" =~ ^[[:space:]]*$ ]]; then
+    host_gateway="host.docker.internal"
+  fi
+  # 2. 'docker-compose.yml' 파일 변경
+  find "${TMP_INST_DIR}" -type f -name "docker-compose.yml" -exec sed -i 's|${docker-extra_hosts-host_gateway}|'"${host_gateway}"'|g' {} +
   
   # 이전 데이터가 존재한다면 삭제.
   rm -rf "${INST_DIR}"
