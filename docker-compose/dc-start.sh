@@ -80,6 +80,26 @@ DETECTED_TAG=$(docker images "${IMAGE_NAME}" --format '{{.Tag}}' | grep -v '^lat
 # 감지된 태그가 있으면 사용하고, 아예 없으면 기본값(latest)을 사용합니다.
 export IMAGE_TAG=${DETECTED_TAG:-latest}
 
+# -----------------------------------------------------------------------------
+# 🌟 [자동화] docker-compose.yml의 volumes 항목에서 호스트 경로 동적 추출 및 생성
+# -----------------------------------------------------------------------------
+echo "Check and create volume directories from docker-compose.yml..."
+
+# 1. grep: 공백 후 '- ' 기호 뒤에 절대경로('/')나 상대경로('./', '../')로 시작하는 볼륨 매핑 라인 추출
+# 2. awk : ':' 구분자로 분리하여 첫 번째 필드(호스트 경로 영역)만 선택
+# 3. sed : 앞부분의 여백과 '- ' 기호를 깔끔하게 제거
+# 4. tr  : 혹시 모를 따옴표(", ') 제거
+HOST_PATHS=$(grep -E '^\s*-\s*(\/|\.\/|\.\.\/)' "${COMPOSE_YML}" | awk -F':' '{print $1}' | sed 's/^[ \t]*-[ \t]*//' | tr -d '"'\''')
+
+# 추출된 경로들을 순회하며 존재하지 않을 경우 현재 사용자 권한으로 생성
+for HOST_PATH in $HOST_PATHS; do
+  if [ ! -d "${HOST_PATH}" ]; then
+    echo " - Create directory: ${HOST_PATH}"
+    mkdir -p "${HOST_PATH}"
+  fi  
+done
+# -----------------------------------------------------------------------------
+
 # eval을 사용하지 않고, 공백이 포함될 수 있는 경로를 쌍따옴표로 안전하게 감싸서 직접 실행합니다.
 {
   ${COMPOSE_CMD} -f "${COMPOSE_YML}" up -d
