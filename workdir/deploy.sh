@@ -1278,6 +1278,7 @@ else
   
   # 이전 데이터가 존재한다면 삭제.
   rm -rf "${INST_DIR}"
+  mkdir -p "${INST_DIR}"
   cp -rv "${TMP_INST_DIR}/." "${INST_DIR}/"
   
   mv -v "${INST_DIR}/dc-start.sh" "${INST_DIR}/start.sh"
