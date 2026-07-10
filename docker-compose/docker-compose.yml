@@ -12,7 +12,6 @@ services:
     volumes: # host path : container path
       - ${log.dir}:/log/${group}/${build.name}
       - ${install.dir}/config:/app/${group}/${build.name}/config
-      - /svc/igmoip/data/event:/svc/igmoip/data/event
     environment:
       - TZ=${dockerfile.env.timezone}
     restart: unless-stopped
