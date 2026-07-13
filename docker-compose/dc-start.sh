@@ -70,7 +70,10 @@ echo "COMPOSE  : ${COMPOSE_CMD}"
 ACTUAL_USER=${SUDO_USER:-$USER}
 export HOST_UID=$(id -u "${ACTUAL_USER}")
 export HOST_GID=$(id -g "${ACTUAL_USER}")
-echo "HOST_USER: ${ACTUAL_USER} (UID: ${HOST_UID}, GID: ${HOST_GID})"
+export HOST_USER_NAME=${ACTUAL_USER}
+export HOST_USER_HOME=$(getent passwd $ACTUAL_USER | cut -d: -f6)
+export HOST_TIMEZONE=$(timedatectl show --property=Timezone --value)
+echo "HOST_USER: ${ACTUAL_USER} (UID: ${HOST_UID}, GID: ${HOST_GID}), USER_HOME: ${HOST_USER_HOME}, TIMEZONE: ${HOST_TIMEZONE}"
 
 # 🌟 로컬 저장소에서 가장 최근에 생성된 이미지의 태그를 자동 감지
 IMAGE_NAME="${build.name}"
