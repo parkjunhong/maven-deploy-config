@@ -16,7 +16,7 @@ services:
       # 실행계정 이름
       - USER=${HOST_USER_NAME}
       # 실행계정 홈 디렉토리
-      - HOME=${HOST_USER_NAME}
+      - HOME=${HOST_USER_HOME}
       # 실행계정 UID
       - HOST_UID=${HOST_UID}
       # 실행계정 GID
