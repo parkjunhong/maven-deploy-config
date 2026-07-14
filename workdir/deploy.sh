@@ -95,8 +95,8 @@ normalize_path() {
 
 # 기본설정 파일
 CONFIG_FILE="service.properties"
-SERVICE_REGISTERED="Y"
-SERVICE_AUTO_START="Y"
+SERVICE_REGISTERED=""
+SERVICE_AUTO_START=""
 
 # Docker 옵션 초기화
 DOCKER_MODE="N"
