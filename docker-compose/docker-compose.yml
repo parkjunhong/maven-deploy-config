@@ -30,4 +30,7 @@ services:
       - HOST_GID=${HOST_GID}
       # 호스트 타임 존
       - TZ=${HOST_TIMEZONE}
+      # 호스트 로케일 정보를 JVM 런타임 환경에 주입
+      - LANG=${HOST_LANG}
+      - LC_ALL=${HOST_LANG}
     restart: unless-stopped
