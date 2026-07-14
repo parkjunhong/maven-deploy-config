@@ -72,8 +72,14 @@ export HOST_UID=$(id -u "${ACTUAL_USER}")
 export HOST_GID=$(id -g "${ACTUAL_USER}")
 export HOST_USER_NAME=${ACTUAL_USER}
 export HOST_USER_HOME=$(getent passwd $ACTUAL_USER | cut -d: -f6)
-export HOST_TIMEZONE=$(timedatectl show --property=Timezone --value)
-echo "HOST_USER: ${ACTUAL_USER} (UID: ${HOST_UID}, GID: ${HOST_GID}), USER_HOME: ${HOST_USER_HOME}, TIMEZONE: ${HOST_TIMEZONE}"
+export HOST_TIMEZONE=$(timedatectl show --property=Timezone --value 2>/dev/null || echo "Asia/Seoul" )
+# 👇 추가: 호스트의 런타임 로케일 정보 추출 (기본값 안전장치 포함)
+export HOST_LANG=${LANG:-"ko_KR.UTF-8"}
+
+echo "HOST_NAME: ${HOST_USER_NAME} (UID: ${HOST_UID}, GID: ${HOST_GID})"
+echo "USER_HOME: ${HOST_USER_HOME}"
+echo "TIMEZONE : ${HOST_TIMEZONE}"
+echo "LANG     : ${HOST_LANG}"
 
 # 🌟 로컬 저장소에서 가장 최근에 생성된 이미지의 태그를 자동 감지
 IMAGE_NAME="${build.name}"
