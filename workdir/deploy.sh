@@ -1095,7 +1095,7 @@ install_service_temporarily(){
   # =========================================================
   # 2. 서비스 임시 설치
   # =========================================================
-  rm -rfv "$HOME/tmp/${BUILD_NAME}."*
+  rm -rf "$HOME/tmp/${BUILD_NAME}."*
   mkdir -p "$HOME/tmp/"
   TMP_INST_DIR=$(mktemp -d $HOME/tmp/${BUILD_NAME}.XXXXXXXXXX)
   
@@ -1153,7 +1153,7 @@ if [ "$DOCKER_MODE" == "N" ];then
   echo "🖥️ >>> [일반 배포 모드] Host 환경에 직접 설치합니다."
   
   # 임시설치 파일(${TMP_INST_DIR})의 모든 정보를 설치경로(${INST_DIR})에 복사합니다.
-  rm -rfv "${INST_DIR}"
+  rm -rf "${INST_DIR}"
   cp -rv "${TMP_INST_DIR}/." "${INST_DIR}/"
 else
   # ---------------------------------------------------------
