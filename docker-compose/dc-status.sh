@@ -84,7 +84,7 @@ echo "DIRECTORY: ${INSTALL_DIR}"
 echo "APP_NAME : ${APP_NAME}"
 echo "COMPOSE  : ${COMPOSE_CMD}"
 
-# 👤 [추가] sudo 실행 여부와 관계없이 실제 계정의 UID/GID를 환경 변수로 내보냅니다.
+# 👤 sudo 실행 여부와 관계없이 실제 계정의 정보(UID/GID, HOME, TIMEZONE, LOCALE)를 환경 변수로 내보냅니다.
 ACTUAL_USER=${SUDO_USER:-$USER}
 export HOST_UID=$(id -u "${ACTUAL_USER}")
 export HOST_GID=$(id -g "${ACTUAL_USER}")
