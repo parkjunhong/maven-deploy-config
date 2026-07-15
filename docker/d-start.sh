@@ -7,9 +7,28 @@ echo "### -------------------- start.sh ------------------------ ###"
 echo "### -------------------- start.sh ------------------------ ###"
 echo "##############################################################"
 
-usage(){
-  echo
-  echo ">>> CALLED BY [[ $1 ]]"
+usage() {
+  local FILENAME=$(basename "$0")
+  
+  if [ ! -z "$1" ]; then
+    local indent=10
+    local formatl=" - %-"$indent"s: %s\n"
+    local formatr=" - %"$indent"s: %s\n"
+    echo
+    echo "================================================================================"
+    printf "$formatl" "filename" "$FILENAME"
+    printf "$formatl" "line" "$2"
+    printf "$formatl" "callstack"
+    local idx=1
+    for func in ${FUNCNAME[@]:1}
+    do
+      printf "$formatr" "["$idx"]" $func
+      ((idx++))
+    done
+    printf "$formatl" "cause" "$1"
+    echo "================================================================================"
+  fi
+  
   echo
   echo "[Usage]"
   echo
@@ -84,13 +103,13 @@ EXEC_ARGS=(
 {
     # 3. eval을 제거하고 직접 실행. (Docker 환경에서는 exec를 사용하여 PID 1을 Java로 위임합니다.)
     echo "Starting Java application..."
-    echo "Command: exec \"${JAVA_PATH}\" \"${EXEC_ARGS[@]}\""
+    echo "Command: exec \"${JAVA_PATH}\" ${EXEC_ARGS[*]}"
     
     exec "${JAVA_PATH}" "${EXEC_ARGS[@]}"
     
 } || {
     echo "[FAIL] Failed to execute command."
-    echo "Command: exec \"${JAVA_PATH}\" \"${EXEC_ARGS[@]}\""
+    echo "Command: exec \"${JAVA_PATH}\" ${EXEC_ARGS[*]}"
     exit 1
 }
 

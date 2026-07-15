@@ -7,17 +7,35 @@ echo "### -------------------- status.sh ------------------------ ###"
 echo "### -------------------- status.sh ------------------------ ###"
 echo "##############################################################"
 
-usage(){
-	echo
-	echo ">>> CALLED BY [[ $1 ]]"
-	echo
-	echo "[Usage]"
-	echo
-	echo "./status.sh [-h]"
-	echo
-	echo "[Option]"
-	echo " -h, --help   : 도움말"
-	echo
+usage() {
+  local FILENAME=$(basename "$0")
+  
+  if [ ! -z "$1" ]; then
+    local indent=10
+    local formatl=" - %-"$indent"s: %s\n"
+    local formatr=" - %"$indent"s: %s\n"
+    echo
+    echo "================================================================================"
+    printf "$formatl" "filename" "$FILENAME"
+    printf "$formatl" "line" "$2"
+    printf "$formatl" "callstack"
+    local idx=1
+    for func in ${FUNCNAME[@]:1}
+    do
+      printf "$formatr" "["$idx"]" $func
+      ((idx++))
+    done
+    printf "$formatl" "cause" "$1"
+    echo "================================================================================"
+  fi
+  
+  echo
+  echo "[Usage]"
+  echo "  ./$FILENAME [-h] [-it]"
+  echo
+  echo "[Options]"
+  echo "  -h,  --help : 도움말을 출력합니다."
+  echo
 }
 
 

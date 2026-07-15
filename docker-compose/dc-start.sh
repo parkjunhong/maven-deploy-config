@@ -7,20 +7,40 @@ echo "### -------------------- start.sh ------------------------ ###"
 echo "### -------------------- start.sh ------------------------ ###"
 echo "##############################################################"
 
-usage(){
-	echo
-	echo ">>> CALLED BY [[ $1 ]]"
-	echo
-	echo "[Usage]"
-	echo
-	echo "./start.sh [-h]"
-	echo
-	echo "[Option]"
-	echo " -h, --help   : 도움말"
-	echo
+usage() {
+  local FILENAME=$(basename "$0")
+  
+  if [ ! -z "$1" ]; then
+    local indent=10
+    local formatl=" - %-"$indent"s: %s\n"
+    local formatr=" - %"$indent"s: %s\n"
+    echo
+    echo "================================================================================"
+    printf "$formatl" "filename" "$FILENAME"
+    printf "$formatl" "line" "$2"
+    printf "$formatl" "callstack"
+    local idx=1
+    for func in ${FUNCNAME[@]:1}
+    do
+      printf "$formatr" "["$idx"]" $func
+      ((idx++))
+    done
+    printf "$formatl" "cause" "$1"
+    echo "================================================================================"
+  fi
+  
+  echo
+  echo "[Usage]"
+  echo "  ./$FILENAME [-h] [-it]"
+  echo
+  echo "[Options]"
+  echo "  -h,  --help             : 도움말을 출력합니다."
+  echo "  -it, --interactive-tty  : 백그라운드(-d) 실행을 생략하고 포그라운드(Interactive TTY) 모드로 실행합니다."
+  echo
 }
 
 
+INTERACTIVE_TTY=0
 ## 파라미터 읽기
 while [ "$1" != "" ]; do
 	case $1 in
@@ -28,6 +48,9 @@ while [ "$1" != "" ]; do
 			usage "--help"
 			exit 0
 			;;
+    -it | --interactive-tty)
+      INTERACTIVE_TTY=1
+      ;;
 		*)
 			usage "Invalid option. option: $1"
 			exit 1
@@ -110,13 +133,25 @@ for HOST_PATH in $HOST_PATHS; do
 done
 # -----------------------------------------------------------------------------
 
-# eval을 사용하지 않고, 공백이 포함될 수 있는 경로를 쌍따옴표로 안전하게 감싸서 직접 실행합니다.
+# 1. 'up' 명령어에 추가할 옵션을 담을 배열 선언 (기본은 빈 배열)
+UP_OPTS=()
+
+# 2. 조건에 따라 배열에 '-d' 옵션 추가 (변수 참조 시 '$' 기호 추가)
+if [ "$INTERACTIVE_TTY" -eq 0 ]; then
+    UP_OPTS=("-d")
+fi
+
+# 3. 중복을 제거한 단일 실행 블록
+# 공백이 포함될 수 있는 경로를 쌍따옴표로 안전하게 감싸서 직접 실행합니다.
 {
-  ${COMPOSE_CMD} -f "${COMPOSE_YML}" up -d
-  echo "[SUCCESS] ${COMPOSE_CMD} -f \"${COMPOSE_YML}\" up -d"
+    # "${UP_OPTS[@]}"는 배열이 비어있으면 아무것도 출력하지 않고, 요소가 있으면 안전하게 확장
+    ${COMPOSE_CMD} -f "${COMPOSE_YML}" up "${UP_OPTS[@]}"
+    
+    # 로그 출력 시에는 ${UP_OPTS[*]}를 사용하여 배열 요소를 하나의 문자열로 출력
+    echo "[SUCCESS] ${COMPOSE_CMD} -f \"${COMPOSE_YML}\" up ${UP_OPTS[*]}"
 } || {
-  echo "[FAIL] ${COMPOSE_CMD} -f \"${COMPOSE_YML}\" up -d"
-  exit 1 # 명령어 실패 시 스크립트를 중단하는 것이 안전합니다.
+    echo "[FAIL] ${COMPOSE_CMD} -f \"${COMPOSE_YML}\" up ${UP_OPTS[*]}"
+    exit 1
 }
 
 echo
