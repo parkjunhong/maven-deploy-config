@@ -1,3 +1,3 @@
 #!/bin/bash
 
-tail -n 100 -f ${log.dir}/${logfile.name}
+tail -n 100 -F ${log.dir}/${logfile.name}
