@@ -1199,8 +1199,53 @@ else
     echo "✅ [SUCCESS] Docker 이미지 빌드 완료."
   fi
   
-  LOG_DIR=$(read_prop "${CONFIG_FILE}" "log.dir")
-  find "${TMP_INST_DIR}" -type f -name "log4j2.yml" -exec sed -i 's|'"${LOG_DIR}"'|/log/'"${GROUP_NAME}"'/'"${BUILD_NAME}"'|g' {} +
+  # 'log4j2.yml'의 로그파일 생성경로를 'docker-compose.yml' 의 'volume' 설정 정보로 변경.
+  #LOG_DIR=$(read_prop "${CONFIG_FILE}" "log.dir")
+  #find "${TMP_INST_DIR}" -type f -name "log4j2.yml" -exec sed -i 's|'"${LOG_DIR}"'|/log/'"${GROUP_NAME}"'/'"${BUILD_NAME}"'|g' {} +
+  
+  # -----------------------------------------------------------------------------
+  # 'docker-compose.yml'의 'volumes' 설정 정보를 기반으로 컨테이너 내부 경로 후처리
+  # -----------------------------------------------------------------------------
+  DVL_PREFIX="docker-compose.volumes.linker"
+
+  # 설정 문자열을 읽어 globbing 없이 공백 기준으로 안전하게 배열로 변환합니다.
+  read -r -a DC_VOL_LINKERS <<< "$(read_prop "${CONFIG_FILE}" "${DVL_PREFIX}")"
+
+  for linker_id in "${DC_VOL_LINKERS[@]}"; do
+    # 설정이 존재하지 않아 read_prop()가 원본 property 표현식을 반환하거나,
+    # 비어있는 경우 후처리하지 않습니다.
+    if [[ -z "${linker_id}" || "${linker_id}" == "\${${DVL_PREFIX}}" ]]; then
+      continue
+    fi
+
+    TARGET_FILE=$(read_prop "${CONFIG_FILE}" "${DVL_PREFIX}.${linker_id}.file")
+    HOST_PATH=$(read_prop "${CONFIG_FILE}" "${DVL_PREFIX}.${linker_id}.host")
+    CONTAINER_PATH=$(read_prop "${CONFIG_FILE}" "${DVL_PREFIX}.${linker_id}.container")
+
+    # linker별 property key
+    TARGET_FILE_KEY="${DVL_PREFIX}.${linker_id}.file"
+    HOST_PATH_KEY="${DVL_PREFIX}.${linker_id}.host"
+    CONTAINER_PATH_KEY="${DVL_PREFIX}.${linker_id}.container"
+
+    # 필수 설정값 검증
+    if [[ -z "${TARGET_FILE}" || "${TARGET_FILE}" == "\${${TARGET_FILE_KEY}}" || \
+          -z "${HOST_PATH}" || "${HOST_PATH}" == "\${${HOST_PATH_KEY}}" || \
+          -z "${CONTAINER_PATH}" || "${CONTAINER_PATH}" == "\${${CONTAINER_PATH_KEY}}" ]]; then
+      echo "⚠️ [WARNING] Volume Linker ID '${linker_id}'의 설정 정보가 불완전하여 후처리를 건너뜁니다."
+      continue
+    fi
+
+    echo "🔄 >>> [Volume Linker: ${linker_id}] '${TARGET_FILE}' 파일 내 '${HOST_PATH}' 경로를 '${CONTAINER_PATH}'(으)로 치환합니다."
+
+    # sed search pattern에서 정규식 특수문자가 의미를 갖지 않도록 escape 합니다.
+    SED_HOST_PATH=$(printf '%s' "${HOST_PATH}" | sed 's/[][\/.^$*+?(){}|\\]/\\&/g')
+
+    # sed replacement에서 특수문자가 의미를 갖지 않도록 escape 합니다.
+    SED_CONTAINER_PATH=$(printf '%s' "${CONTAINER_PATH}" | sed 's/[&|\\]/\\&/g')
+
+    # 실제 치환 작업 수행
+    find "${TMP_INST_DIR}" -type f -name "${TARGET_FILE}" -exec sed -i "s|${SED_HOST_PATH}|${SED_CONTAINER_PATH}|g" {} +
+  done
     
   if [ "$BUILD_ONLY" == "Y" ]; then
     echo "🏁 >>> [--build-only] 옵션이 켜져 있어 이미지를 다운로드 및 배포 데이터를 생성합니다."
@@ -1259,10 +1304,13 @@ else
   rm -rf -- "${TMP_INST_DIR}/${BUILD_NAME}.jar" "${TMP_INST_DIR}/lib" "${TMP_INST_DIR}/start.sh"
   
   # 'docker image' 생성 정보를 설치경로에 '참고'정보로 제공
+  echo
+  echo "📋 >>> docker 이미지 생성용 정보를 제공합니다."
   mkdir -p "${TMP_INST_DIR}/.docker-image"    
   mv -v "${TMP_INST_DIR}/Dockerfile" "${TMP_INST_DIR}/.docker-image/"
   mv -v "${TMP_INST_DIR}/d-start.sh" "${TMP_INST_DIR}/.docker-image/"
   
+  echo
   echo "🐳 >>> 'docker compose 기반 환경'을 생성합니다."
   # 복사할 파일: 'docker-compose.yml', 'dc-start.sh', 'dc-stop.sh', 'dc-status.sh'
   copy_files "${BUILD_NAME}/docker-compose" "${TMP_INST_DIR}" "docker-compose"

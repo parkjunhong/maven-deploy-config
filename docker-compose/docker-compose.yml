@@ -1,11 +1,11 @@
 # 환경변수로 제공되는 정보
+# - IMAGE_TAG: 'docker image' Tag
 # - HOST_USER_NAME: 실행계정 이름
 # - HOST_USER_HOME: 실행계정 홈 디렉토리
 # - HOST_UID: 실행계정 UID (User ID)
 # - HOST_GID: 실행계정 GIU (Group ID)
 # - HOST_TIMEZONE: 호스트 Timezone
 # - HOST_LANG: 호스트 'locale' 정보 
-# - IMAGE_TAG: 'docker image' Tag
 services:
   service:  
     image: ${build.name}:${IMAGE_TAG:-latest}
@@ -18,8 +18,8 @@ services:
     ports:
       - "${server.port}:${server.port}"
     volumes: # host path : container path
-      - ${log.dir}:/log/${group}/${build.name}
       - ${install.dir}/config:/app/${group}/${build.name}/config
+      - ${log.dir}:/log/${group}/${build.name}
     environment:
       # 실행계정 이름
       - USER=${HOST_USER_NAME}
