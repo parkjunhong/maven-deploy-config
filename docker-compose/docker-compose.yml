@@ -16,7 +16,7 @@ services:
       # 'host-gateway'는 'docker bridge' 네트워크의 Gateway IP 를 갖는 '도메인' 정보를 '${HOST_DOCKER_INTERNAL}'으로 설정함.
       - ${HOST_DOCKER_INTERNAL}:host-gateway
     ports:
-      - "127.0.0.1:${SERVER_PORT}:${SERVER_PORT}"
+      - "${SERVER_PORT}:${SERVER_PORT}"
     volumes: # host path : container path
       - ${LOG_DIR}:/log/${GROUP}/${BUILD_NAME}
       - ${INSTALL_DIR}/config:/app/${GROUP}/${BUILD_NAME}/config
