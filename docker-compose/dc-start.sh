@@ -1,5 +1,28 @@
 #!/usr/bin/env bash
 
+# ==============================================================================
+# User Information & Usage
+# ------------------------------------------------------------------------------
+# Description:
+#   Docker Compose를 실행하여 서비스를 시작하는 스크립트입니다.
+#   docker-compose.yml의 volumes 항목에서 호스트 경로를 파싱하여 자동 생성합니다.
+#   ${INSTALL_DIR}/.env 파일의 변수(${VAR})를 참조하는 경우에도 해당 경로를 자동 치환하여 디렉토리를 생성합니다.
+#
+# Usage:
+#   ./dc-start.sh [-h|--help] [-it|--interactive-tty]
+#
+# Options:
+#   -h,  --help             : 도움말을 출력합니다.
+#   -it, --interactive-tty  : 백그라운드(-d) 실행을 생략하고 포그라운드(Interactive TTY) 모드로 실행합니다.
+#
+# ==============================================================================
+# Bash Completion Parameter Description
+# ------------------------------------------------------------------------------
+# Parameters:
+#   -h, --help              : 도움말 출력
+#   -it, --interactive-tty  : 대화형 TTY 포그라운드 모드 실행
+# ==============================================================================
+
 echo
 echo "##############################################################"
 echo "### -------------------- start.sh ------------------------ ###"
@@ -43,20 +66,20 @@ usage() {
 INTERACTIVE_TTY=0
 ## 파라미터 읽기
 while [ "$1" != "" ]; do
-	case $1 in
-		-h | --help)	 
-			usage "--help"
-			exit 0
-			;;
+  case $1 in
+    -h | --help)   
+      usage "--help"
+      exit 0
+      ;;
     -it | --interactive-tty)
       INTERACTIVE_TTY=1
       ;;
-		*)
-			usage "Invalid option. option: $1"
-			exit 1
-			;;
-	esac
-	shift
+    *)
+      usage "Invalid option. option: $1"
+      exit 1
+      ;;
+  esac
+  shift
 done
 
 ##
@@ -117,17 +140,47 @@ export IMAGE_TAG=${DETECTED_TAG:-latest}
 # -----------------------------------------------------------------------------
 echo "Check and create volume directories from docker-compose.yml..."
 
-# 1. grep: 공백 후 '- ' 기호 뒤에 절대경로('/')나 상대경로('./', '../')로 시작하는 볼륨 매핑 라인 추출
-# 2. awk : ':' 구분자로 분리하여 첫 번째 필드(호스트 경로 영역)만 선택
-# 3. sed : 앞부분의 여백과 '- ' 기호를 깔끔하게 제거
-# 4. tr  : 혹시 모를 따옴표(", ') 제거
-HOST_PATHS=$(grep -E '^\s*-\s*(\/|\.\/|\.\.\/)' "${COMPOSE_YML}" | awk -F':' '{print $1}' | sed 's/^[ \t]*-[ \t]*//' | tr -d '"'\''')
+# .env 파일이 존재하는 경우 환경변수 로드
+ENV_FILE="${INSTALL_DIR}/.env"
+if [ -f "${ENV_FILE}" ]; then
+  echo " - Load environment variables from: ${ENV_FILE}"
+  while IFS='=' read -r key value || [ -n "$key" ]; do
+    # 앞뒤 공백 제거
+    key=$(echo "$key" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    # 주석(#)이거나 빈 줄이면 건너뜀
+    [[ -z "$key" || "$key" =~ ^# ]] && continue
+    # 유효한 변수명인 경우
+    if [[ "$key" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      # 값의 앞뒤 공백 및 따옴표 제거
+      value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+      value="${value%\"}"
+      value="${value#\"}"
+      value="${value%\'}"
+      value="${value#\'}"
+      export "$key"="$value"
+    fi
+  done < "${ENV_FILE}"
+fi
 
-# 추출된 경로들을 순회하며 존재하지 않을 경우 현재 사용자 권한으로 생성
-for HOST_PATH in $HOST_PATHS; do
-  if [ ! -d "${HOST_PATH}" ]; then
-    echo " - Create directory: ${HOST_PATH}"
-    mkdir -p "${HOST_PATH}"
+# 1. sed  : volumes 섹션부터 다음 섹션 전까지의 블록 추출
+# 2. grep : '- ' 기호로 시작하고 콜론(':')을 포함하는 볼륨 매핑 라인 추출
+# 3. awk  : ':' 구분자로 분리하여 첫 번째 필드(호스트 경로 영역)만 선택
+# 4. sed  : 앞부분의 여백과 '- ' 기호 제거
+# 5. tr   : 따옴표(", ') 제거
+HOST_PATHS=$(sed -n '/^[[:space:]]*volumes:/,/^[[:space:]]*[a-zA-Z0-9_-]\+:/p' "${COMPOSE_YML}" \
+  | grep -E '^\s*-\s*.*:' \
+  | awk -F':' '{print $1}' \
+  | sed 's/^[ \t]*-[ \t]*//' \
+  | tr -d "\"\'")
+
+# 추출된 경로들을 순회하며 변수 치환 후 존재하지 않을 경우 현재 사용자 권한으로 생성
+for RAW_PATH in $HOST_PATHS; do
+  # 환경 변수(${VAR} 또는 $VAR) 치환
+  eval "RESOLVED_PATH=\"${RAW_PATH}\""
+
+  if [ -n "${RESOLVED_PATH}" ] && [ ! -d "${RESOLVED_PATH}" ]; then
+    echo " - Create directory: ${RESOLVED_PATH}"
+    mkdir -p "${RESOLVED_PATH}"
   fi  
 done
 # -----------------------------------------------------------------------------
@@ -157,4 +210,3 @@ echo
 echo "=============================================================================================="
 
 exit 0
-

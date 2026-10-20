@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
 
+# ==============================================================================
+# User Information & Usage
+# ------------------------------------------------------------------------------
+# Description:
+#   Docker Compose로 구동 중인 서비스 컨테이너의 상태를 확인하는 스크립트입니다.
+#   docker-compose.yml을 기반으로 'docker compose ps' 명령을 실행합니다.
+#
+# Usage:
+#   ./dc-status.sh [-h|--help]
+#
+# Options:
+#   -h,  --help             : 도움말을 출력합니다.
+#
+# ==============================================================================
+# Bash Completion Parameter Description
+# ------------------------------------------------------------------------------
+# Parameters:
+#   -h, --help              : 도움말 출력
+# ==============================================================================
+
 echo
 echo "##############################################################"
 echo "### -------------------- status.sh ------------------------ ###"
@@ -31,7 +51,7 @@ usage() {
   
   echo
   echo "[Usage]"
-  echo "  ./$FILENAME [-h] [-it]"
+  echo "  ./$FILENAME [-h]"
   echo
   echo "[Options]"
   echo "  -h,  --help : 도움말을 출력합니다."
@@ -41,17 +61,17 @@ usage() {
 
 ## 파라미터 읽기
 while [ "$1" != "" ]; do
-	case $1 in
-		-h | --help)	 
-			usage "--help"
-			exit 0
-			;;
-		*)
-			usage "Invalid option. option: $1"
-			exit 1
-			;;
-	esac
-	shift
+  case $1 in
+    -h | --help)   
+      usage "--help"
+      exit 0
+      ;;
+    *)
+      usage "Invalid option. option: $1"
+      exit 1
+      ;;
+  esac
+  shift
 done
 
 ##

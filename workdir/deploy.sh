@@ -597,95 +597,142 @@ setup_service_link() {
   echo "🔗  [Step 3] Created soft link: ${origin_path} -> ${target_path}"
 }
 
+
+#
+# 시스템의 서비스 관리 도구(Service Manager / Init System)를 자동 감지합니다.
+# @return {string} systemd | sysvinit | unsupported
+#
+detect_service_manager() {
+  # 1. systemd 환경인지 확인 (PID 1 프로세스 확인 및 /run/systemd/system 디렉토리 확인)
+  if [ -d /run/systemd/system ] || [ "$(ps -p 1 -o comm= 2>/dev/null)" = "systemd" ]; then
+    echo "systemd"
+    return 0
+  fi
+
+  # 2. 레거시 SysVinit 환경 확인 (필요한 경우에만 유지)
+  if command -v chkconfig >/dev/null 2>&1 && command -v service >/dev/null 2>&1; then
+    echo "sysvinit"
+    return 0
+  fi
+
+  echo "unsupported"
+  return 1
+}
+
+#
+# 서비스 템플릿 파일의 변수를 치환하여 배포용 서비스 파일을 생성합니다.
+# @param $1 {string} 원본 템플릿 파일 경로
+# @param $2 {string} 대상 서비스 전체 경로 (svc_dir/svc_name)
+#
+render_service_template() {
+  local tplfile="$1"
+  local target_filepath="$2"
+  local tplstring
+  tplstring=$(cat "${tplfile}")
+
+  global_rematch "${tplstring}" "$REGEX_PROP_REF"
+
+  if [ -n "$GLOBAL_REMATCH" ]; then
+    local properties=($(echo "$GLOBAL_REMATCH"))
+    for prop_ref in "${properties[@]}"; do
+      local property
+      if [ "${prop_ref}" == "service.filepath" ]; then
+        property="${target_filepath}"
+      else
+        property=$(read_prop "${CONFIG_FILE}" "${prop_ref}")
+      fi
+
+      printf "  %-30s = %s\n" "${prop_ref}" "${property}"
+      # sed 치환 시 충돌 방지를 위해 슬래시(/) 및 앰퍼샌드(&) 이스케이프
+      property=$(echo "${property}" | sed -e 's/[\/&]/\\&/g')
+      sed -i "s/\${${prop_ref}}/${property}/g" "${tplfile}"
+    done
+  fi
+}
+
 # @param $1 {string} 명령어. start|stop|status|enable|copy|create|remove
 handle_by_systemctl() {
-  case "$1" in
+  local cmd="$1"
+
+  case "${cmd}" in
   create)
-    local svc_name=$2".service"
-    local svc_dir=$3
-    local tplfile=$4
-    local tplstring=$(cat "${tplfile}")
+    local svc_name="$2.service"
+    local svc_dir="$3"
+    local tplfile="$4"
 
-    global_rematch "${tplstring}" "$REGEX_PROP_REF"
+    render_service_template "${tplfile}" "${svc_dir}/${svc_name}"
 
-    if [ ! -z "$GLOBAL_REMATCH" ]; then
-      local properties=($(echo $GLOBAL_REMATCH))
-      for prop_ref in "${properties[@]}"; do
-        if [ "${prop_ref}" == "service.filepath" ]; then
-          local property="${svc_dir}/${svc_name}"
-        else
-          local property=$(read_prop "${CONFIG_FILE}" "${prop_ref}")
-        fi
-
-        printf "  %-30s = %s\n" "${prop_ref}" "${property}"
-        local property=${property//\//\\\/}
-        eval "sed -i 's/\${${prop_ref}}/${property}/g' $tplfile"
-      done
-    fi
-    
-    # 🌟 [신규 추가] Docker 배포 모드일 경우 systemd Service 설정을 Docker에 맞게 동적 덮어쓰기
+    # Docker 배포 모드일 경우 oneshot 및 RemainAfterExit 적용
     if [ "$DOCKER_MODE" == "Y" ]; then
       echo "  🐳 [Docker Mode] 서비스 디스크립터 변경: Type=oneshot, RemainAfterExit=yes 추가"
-      # 기존 Type=... 라인을 찾아서 Type=oneshot과 RemainAfterExit=yes로 교체합니다.
-      sed -i 's/^Type=.*/Type=oneshot\nRemainAfterExit=yes/g' "$tplfile"
+      sed -i 's/^Type=.*/Type=oneshot\nRemainAfterExit=yes/g' "${tplfile}"
     fi
     ;;
+
   copy)
-    local svc_file=$2
-    local svc_name=$3".service"
-    local svc_dir=$4
+    local svc_file="$2"
+    local svc_name="$3.service"
+    local svc_dir="$4"
 
     echo
-    sudo cp -vf ${svc_file} "${svc_dir}/${svc_name}"
-    echo "✅ [SUCCESS] sudo cp -vf ${svc_file} ${svc_dir}/${svc_name}"
+    sudo cp -vf "${svc_file}" "${svc_dir}/${svc_name}"
+    sudo systemctl daemon-reload # 🌟 유닛 파일 복사 후 데몬 재로드 필수
+    echo "✅ [SUCCESS] sudo cp -vf ${svc_file} ${svc_dir}/${svc_name} (daemon-reload 완료)"
     ;;
-  enable)
-    svc_name=$2".service"
 
-    sudo systemctl enable ${svc_name}
+  enable)
+    local svc_name="$2.service" # 🌟 local 키워드 보정
+
+    sudo systemctl enable "${svc_name}"
     echo "✅ [SUCCESS] sudo systemctl enable ${svc_name}"
     ;;
-  start)
-    local svc_name=$2".service"
 
-    sudo systemctl start ${svc_name}
+  start)
+    local svc_name="$2.service"
+
+    sudo systemctl start "${svc_name}"
     echo
     echo "▶️ [SUCCESS] sudo systemctl start ${svc_name}"
     ;;
-  status)
-    local svc_name=$2".service"
 
-    sudo systemctl status -l ${svc_name} --no-pager
+  status)
+    local svc_name="$2.service"
+
+    sudo systemctl status -l "${svc_name}" --no-pager
     echo
     echo "ℹ️ [SUCCESS] sudo systemctl status -l ${svc_name} --no-pager"
     ;;
-  stop)
-    local svc_name=$2".service"
 
-    sudo systemctl stop ${svc_name}
+  stop)
+    local svc_name="$2.service"
+
+    sudo systemctl stop "${svc_name}"
     echo
     echo "⏹️ [SUCCESS] sudo systemctl stop ${svc_name}"
     ;;
+
   remove)
-    local svc_name=$2".service"
-    local svc_dir=$3
+    local svc_name="$2.service"
+    local svc_dir="$3"
 
     echo
     echo "⚙️ service: ${svc_dir}/${svc_name}"
     if [ -f "${svc_dir}/${svc_name}" ]; then
-      echo
-      echo "🗑️ FORCE to remove a old 'Service Unit' file."
-      echo
-      sudo systemctl disable ${svc_name}
+      echo "🗑️ FORCE to remove old 'Service Unit' file."
+      # 🌟 안전한 제거 순서: stop -> disable -> rm -> daemon-reload
+      sudo systemctl stop "${svc_name}" 2>/dev/null || true
+      sudo systemctl disable "${svc_name}" 2>/dev/null || true
       echo "✅ [SUCCESS] sudo systemctl disable ${svc_name}"
-      echo
+      
       sudo rm -vf "${svc_dir}/${svc_name}"
-      echo "✅ [SUCCESS] sudo rm -vf  ${svc_dir}/${svc_name}"
+      sudo systemctl daemon-reload # 🌟 파일 삭제 후 데몬 재로드 필수
+      sudo systemctl reset-failed 2>/dev/null || true
+      echo "✅ [SUCCESS] sudo rm -vf ${svc_dir}/${svc_name} (daemon-reload 완료)"
     fi
     ;;
+
   *)
-    echo
-    echo "❌ Unsupported command.(= $1)"
+    echo "❌ Unsupported command.(= ${cmd})"
     exit 1
     ;;
   esac
@@ -693,158 +740,118 @@ handle_by_systemctl() {
 
 # @param $1 {string} 명령어. start|stop|status|enable|copy|create|remove
 handle_by_service() {
+  local cmd="$1"
 
-  case "$1" in
+  case "${cmd}" in
   create)
-    local svc_name=$2
-    local svc_dir=$3
-    local tplfile=$4
-    local tplstring=$(cat "${tplfile}")
+    local svc_name="$2"
+    local svc_dir="$3"
+    local tplfile="$4"
 
-    global_rematch "${tplstring}" "$REGEX_PROP_REF"
-
-    if [ ! -z "$GLOBAL_REMATCH" ]; then
-      local properties=($(echo $GLOBAL_REMATCH))
-      for prop_ref in "${properties[@]}"; do
-        if [ "${prop_ref}" == "service.filepath" ]; then
-          local property="${svc_dir}/${svc_name}"
-        else
-          local property=$(read_prop "${CONFIG_FILE}" "${prop_ref}")
-        fi
-
-        printf "  %-30s = %s\n" "${prop_ref}" "${property}"
-        local property=${property//\//\\\/}
-        eval "sed -i 's/\${${prop_ref}}/${property}/g' $tplfile"
-      done
-    fi
+    render_service_template "${tplfile}" "${svc_dir}/${svc_name}"
     ;;
+
   copy)
-    local svc_file=$2
-    local svc_name=$3
-    local svc_dir=$4
+    local svc_file="$2"
+    local svc_name="$3"
+    local svc_dir="$4"
 
     echo
-    sudo cp -vf ${svc_file} "${svc_dir}/${svc_name}"
-    echo "📋 sudo cp -vf ${svc_file} ${svc_dir}/${svc_name}"
-    echo
+    sudo cp -vf "${svc_file}" "${svc_dir}/${svc_name}"
     sudo chmod +x "${svc_dir}/${svc_name}"
-    echo "🔑 sudo chmod +x ${svc_dir}/${svc_name}"
+    echo "✅ [SUCCESS] sudo cp -vf & chmod +x ${svc_dir}/${svc_name}"
     ;;
+
   enable)
-    local svc_name=$2
+    local svc_name="$2"
 
     echo
-    sudo chkconfig --add ${svc_name}
-    echo "➕ sudo chkconfig --add ${svc_name}"
+    sudo chkconfig --add "${svc_name}"
+    echo "✅ [SUCCESS] sudo chkconfig --add ${svc_name}"
     ;;
+
   start)
-    local svc_name=$2
+    local svc_name="$2"
 
-    sudo service ${svc_name} start
-    echo "▶️ sudo service ${svc_name} start"
+    sudo service "${svc_name}" start
+    echo "▶️ [SUCCESS] sudo service ${svc_name}" start
     ;;
+
   status)
-    local svc_name=$2
+    local svc_name="$2"
 
     echo
-    sudo service ${svc_name} status
-    echo "ℹ️ sudo service ${svc_name} status"
+    sudo service "${svc_name}" status
+    echo "ℹ️ [SUCCESS] sudo service ${svc_name} status"
     ;;
-  stop)
-    local svc_name=$2
-    local status_msg=$(service ${svc_name} status | grep [p]id)
 
-    if [ "$${status_msg}" != "" ]; then
+  stop)
+    local svc_name="$2"
+    local status_msg
+    status_msg=$(service "${svc_name}" status 2>/dev/null | grep -i [p]id || true)
+
+    # 🌟 버그 수정: $$ 오타 제거 및 [ -n ] 사용
+    if [ -n "${status_msg}" ]; then
       echo
-      sudo service ${svc_name} stop
-      echo "⏹️ sudo service ${svc_name} stop"
+      sudo service "${svc_name}" stop
+      echo "⏹️ [SUCCESS] sudo service ${svc_name} stop"
     else
       echo
-      echo "💤 No running"
+      echo "💤 [INFO] Service is not running."
     fi
     ;;
+
   remove)
-    local svc_name=$2
-    local svc_dir=$3
+    local svc_name="$2"
+    local svc_dir="$3"
 
     echo "⚙️ service: ${svc_dir}/${svc_name}"
     if [ -f "${svc_dir}/${svc_name}" ]; then
-      echo "🗑️ FORCE to remove a old 'Service Unit' file."
-      echo
-      echo "🔌 sudo chkconfig ${svc_name} off"
-      sudo chkconfig ${svc_name} off
-      echo
-      echo "➖ sudo chkconfig --del ${svc_name}"
-      sudo chkconfig --del ${svc_name}
-      echo
-      echo "🗑️ sudo rm -vf  ${svc_dir}/${svc_name}"
+      echo "🗑️ FORCE to remove old 'Service Unit' file."
+      sudo service "${svc_name}" stop 2>/dev/null || true
+      sudo chkconfig "${svc_name}" off 2>/dev/null || true
+      sudo chkconfig --del "${svc_name}" 2>/dev/null || true
       sudo rm -vf "${svc_dir}/${svc_name}"
+      echo "✅ [SUCCESS] sudo rm -vf ${svc_dir}/${svc_name}"
     fi
     ;;
+
   *)
-    echo
-    echo "❌ Unsupported command.(= $1)"
+    echo "❌ Unsupported command.(= ${cmd})"
     exit 1
     ;;
   esac
 }
 
 #
-# @param $1 {string} OS name
-# @param $2 {number} OS major number
-# @param $3 {string} command
-# @param $~ {any} service name과 command에 따라 필요한 정보
+# @param $1 {string} command (create | copy | enable | start | stop | status | remove)
+# @param $~ {any} 명령어별 필요 인자
+#
 handle_service() {
-
-  local os_name="$1"
-  local os_version="$2"
-  local svc_cmd="$3"
-  local svc_cmd_args=("${@:4}")
+  local svc_cmd="$1"
+  local svc_cmd_args=("${@:2}")
+  
+  # 서비스 관리자 감지 (systemd 등)
+  local svc_mgr
+  svc_mgr=$(detect_service_manager)
 
   echo
-  echo "🚀 >>> On ${os_name}_${os_version} / ${svc_cmd} ${svc_cmd_args[*]}"
+  echo "🚀 >>> Service Manager: [${svc_mgr}] / Command: ${svc_cmd} ${svc_cmd_args[*]}"
 
-  case ${os_name} in
-  centos)
-    case ${os_version} in
-    6) handle_by_service "${svc_cmd}" "${svc_cmd_args[@]}" ;;
-    7) handle_by_systemctl "${svc_cmd}" "${svc_cmd_args[@]}" ;;
-    *) echo; echo "❌ Unsupported O.S version. os=${os_name}, version=${os_version}"; exit 1 ;;
-    esac
+  case "${svc_mgr}" in
+  systemd)
+    handle_by_systemctl "${svc_cmd}" "${svc_cmd_args[@]}"
     ;;
-  ol)
-    case ${os_version} in
-    7|8|9|10) handle_by_systemctl "${svc_cmd}" "${svc_cmd_args[@]}" ;;
-    *) echo; echo "❌ Unsupported O.S version. os=${os_name}, version=${os_version}"; exit 1 ;;
-    esac
-    ;;
-  rhel)
-    case ${os_version} in
-    6) handle_by_service "${svc_cmd}" "${svc_cmd_args[@]}" ;;
-    7|8|9) handle_by_systemctl "${svc_cmd}" "${svc_cmd_args[@]}" ;;
-    *) echo; echo "❌ Unsupported O.S version. os=${os_name}, version=${os_version}"; exit 1 ;;
-    esac
-    ;;
-  ubuntu)
-    case ${os_version} in
-    16|18|20|22|24) handle_by_systemctl "${svc_cmd}" "${svc_cmd_args[@]}" ;;
-    *) echo; echo "❌ Unsupported O.S version. os=${os_name}, version=${os_version}"; exit 1 ;;
-    esac
-    ;;
-  rocky)
-    case ${os_version} in
-    9|10) handle_by_systemctl "${svc_cmd}" "${svc_cmd_args[@]}" ;;
-    *) echo; echo "❌ Unsupported O.S version. os=${os_name}, version=${os_version}"; exit 1 ;;
-    esac
+  sysvinit)
+    handle_by_service "${svc_cmd}" "${svc_cmd_args[@]}"
     ;;
   *)
     echo
-    echo "❌ Unsupported O.S version. os=${os_name}"
+    echo "❌ 지원하지 않거나 인식할 수 없는 서비스 관리 환경입니다. (Init: ${svc_mgr})"
     exit 1
     ;;
   esac
 }
-
 
 # =========================================================
 # 1. 설정 및 초기화
@@ -1049,13 +1056,17 @@ fi
 # 서비스 명
 SVC_NAME=$(read_prop "${CONFIG_FILE}" "service.name")
 # 서비스 설치 디렉토리
-SVC_DIR=$(read_prop "${CONFIG_FILE}" "service.dir.${OS_NAME}.${OS_VERSION}")
+SVC_MGR=$(detect_service_manager)
+SVC_DIR=$(read_prop "${CONFIG_FILE}" "service.dir.${SVC_MGR}")
+# 만약 설정 파일에 없더라도 systemd 표준 경로(/etc/systemd/system)를 안전하게 기본값으로 적용
+SVC_DIR=${SVC_DIR:-/etc/systemd/system}
+
 # 서비스로 등록하는 경우
 if [ "$AS_A_SERVICE" = "Y" ]; then
   ## 기존 서비스 정지
   echo "🛑 ## 기존 서비스 정지"
   {
-    handle_service "${OS_NAME}" "${OS_VERSION}" "stop" "${SVC_NAME}"
+    handle_service "stop" "${SVC_NAME}"
   } || {
     echo
     echo "💥  >>>>>>>>>>>>>>> OooooooooooooooPs !!! <<<<<<<<<<<<<< "
@@ -1312,7 +1323,7 @@ else
   
   echo
   echo "🐳 >>> 'docker compose 기반 환경'을 생성합니다."
-  # 복사할 파일: 'docker-compose.yml', 'dc-start.sh', 'dc-stop.sh', 'dc-status.sh'
+  # 복사할 파일: 'docker-compose.yml', 'dc-start.sh', 'dc-stop.sh', 'dc-status.sh', 'dot.env'
   copy_files "${BUILD_NAME}/docker-compose" "${TMP_INST_DIR}" "docker-compose"
   
   # 'docker-compose' 정보 보정
@@ -1322,7 +1333,9 @@ else
     host_gateway="host.docker.internal"
   fi
   # 2. 'docker-compose.yml' 파일 변경
-  find "${TMP_INST_DIR}" -type f -name "docker-compose.yml" -exec sed -i 's|${docker-extra_hosts-host_gateway}|'"${host_gateway}"'|g' {} +
+  #find "${TMP_INST_DIR}" -type f -name "docker-compose.yml" -exec sed -i 's|${docker-extra_hosts-host_gateway}|'"${host_gateway}"'|g' {} +
+  # 2. 'dot.env' 파일 변경
+  find "${TMP_INST_DIR}" -type f -name "dot.env" -exec sed -i 's|${docker-extra_hosts-host_gateway}|'"${host_gateway}"'|g' {} +
   
   # 이전 데이터가 존재한다면 삭제.
   rm -rf "${INST_DIR}"
@@ -1332,6 +1345,7 @@ else
   mv -v "${INST_DIR}/dc-start.sh" "${INST_DIR}/start.sh"
   mv -v "${INST_DIR}/dc-stop.sh" "${INST_DIR}/stop.sh"
   mv -v "${INST_DIR}/dc-status.sh" "${INST_DIR}/status.sh"
+  mv -v "${INST_DIR}/dot.env" "${INST_DIR}/.env"
 fi
 
 
@@ -1410,24 +1424,27 @@ if [ "$SERVICE_REGISTERED" = "Y" ] || ([ -z "$SERVICE_REGISTERED" ] && [ "$AS_A_
   echo "###########################################################################################"
 
   INST_MOD_DIR=$(read_prop "${CONFIG_FILE}" "install.module.directory")
-  SVC_TEMPLATE_FILE="${BUILD_NAME}/${INST_MOD_DIR}/${OS_NAME}/${OS_VERSION}/service.template"
+  
+  # 감지된 서비스 관리 도구에 맞는 템플릿 파일 선택 (예: install/systemd/service.template)
+  SVC_MGR=$(detect_service_manager)
+  SVC_TEMPLATE_FILE="${BUILD_NAME}/${INST_MOD_DIR}/${SVC_MGR}/service.template"
 
   echo
   echo "🏷️ ### "$(read_prop "${CONFIG_FILE}" "service.file.description")
 
-  handle_service "${OS_NAME}" "${OS_VERSION}" "remove" "${SVC_NAME}" "${SVC_DIR}"
+  handle_service "remove" "${SVC_NAME}" "${SVC_DIR}"
   sleep 0.5
 
-  handle_service "${OS_NAME}" "${OS_VERSION}" "create" "${SVC_NAME}" "${SVC_DIR}" "${SVC_TEMPLATE_FILE}"
+  handle_service "create" "${SVC_NAME}" "${SVC_DIR}" "${SVC_TEMPLATE_FILE}"
   sleep 0.5
 
-  handle_service "${OS_NAME}" "${OS_VERSION}" "copy" "${SVC_TEMPLATE_FILE}" "${SVC_NAME}" "${SVC_DIR}"
+  handle_service "copy" "${SVC_TEMPLATE_FILE}" "${SVC_NAME}" "${SVC_DIR}"
   sleep 0.5
 
-  handle_service "${OS_NAME}" "${OS_VERSION}" "enable" "${SVC_NAME}"
+  handle_service "enable" "${SVC_NAME}"
   sleep 0.5
 
-  handle_service "${OS_NAME}" "${OS_VERSION}" "stop" "${SVC_NAME}"
+  handle_service "stop" "${SVC_NAME}"
   sleep 1
 fi
 
@@ -1441,8 +1458,8 @@ clean_temp_dir "${BUILD_NAME}" "${TMP_INST_DIR}"
 
 if [ "$SERVICE_AUTO_START" = "Y" ] || ([ -z "$SERVICE_AUTO_START" ] && [ "${AUTOSTART}" = "Y" ]); then
   if [ "$SERVICE_REGISTERED" = "Y" ] || ([ -z "$SERVICE_REGISTERED" ] && [ "$AS_A_SERVICE" = "Y" ]); then
-    handle_service "${OS_NAME}" "${OS_VERSION}" "start" "${SVC_NAME}"
-    handle_service "${OS_NAME}" "${OS_VERSION}" "status" "${SVC_NAME}"
+    handle_service "start" "${SVC_NAME}"
+    handle_service "status" "${SVC_NAME}"
   else
     _start_cmd_=$(read_prop "${CONFIG_FILE}" "install.file.start")
     echo "▶️ _start_cmd_=${_start_cmd_}"

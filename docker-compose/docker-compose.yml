@@ -1,26 +1,25 @@
 # 환경변수로 제공되는 정보
-# - IMAGE_TAG: 'docker image' Tag
 # - HOST_USER_NAME: 실행계정 이름
 # - HOST_USER_HOME: 실행계정 홈 디렉토리
 # - HOST_UID: 실행계정 UID (User ID)
 # - HOST_GID: 실행계정 GIU (Group ID)
 # - HOST_TIMEZONE: 호스트 Timezone
-# - HOST_LANG: 호스트 'locale' 정보 
+# - IMAGE_TAG: 'docker image' Tag
 services:
   service:  
-    image: ${build.name}:${IMAGE_TAG:-latest}
-    container_name: ${build.name}
+    image: ${BUILD_NAME}:${IMAGE_TAG:-latest}
+    container_name: ${BUILD_NAME}
     restart: unless-stopped
     # 컨테이너 프로세스를 호스트 사용자의 권한으로 실행하도록 지정
     user: "${HOST_UID}:${HOST_GID}"
     extra_hosts:
-      # 'host-gateway'는 'docker bridge' 네트워크의 Gateway IP 를 갖는 '도메인' 정보를 '${docker-extra_hosts-host_gateway}'으로 설정함.
-      - ${docker-extra_hosts-host_gateway}:host-gateway
+      # 'host-gateway'는 'docker bridge' 네트워크의 Gateway IP 를 갖는 '도메인' 정보를 '${HOST_DOCKER_INTERNAL}'으로 설정함.
+      - ${HOST_DOCKER_INTERNAL}:host-gateway
     ports:
-      - "${server.port}:${server.port}"
+      - "127.0.0.1:${SERVER_PORT}:${SERVER_PORT}"
     volumes: # host path : container path
-      - ${install.dir}/config:/app/${group}/${build.name}/config
-      - ${log.dir}:/log/${group}/${build.name}
+      - ${LOG_DIR}:/log/${GROUP}/${BUILD_NAME}
+      - ${INSTALL_DIR}/config:/app/${GROUP}/${BUILD_NAME}/config
     environment:
       # 실행계정 이름
       - USER=${HOST_USER_NAME}
@@ -35,3 +34,6 @@ services:
       # 호스트 로케일 정보를 JVM 런타임 환경에 주입
       - LANG=${HOST_LANG}
       - LC_ALL=${HOST_LANG}
+    networks:
+      service-network:
+        ipv4_address: ${SERVICE_IP}
